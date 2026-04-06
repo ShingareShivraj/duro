@@ -235,12 +235,15 @@ class _CheckoutSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
+
+
         _InfoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _SectionTitle("Delivery"),
               const SizedBox(height: 14),
+
               TextFormField(
                 controller: model.deliveryDateController,
                 readOnly: true,
@@ -250,11 +253,22 @@ class _CheckoutSection extends StatelessWidget {
                 ),
                 validator: model.validateDeliveryDate,
               ),
+
+              const SizedBox(height: 14),
+
+              TextFormField(
+                controller: model.descriptionController,
+                maxLines: 3,
+                decoration: _inputDecoration("Order Description").copyWith(
+                  prefixIcon: const Icon(Icons.description),
+                ),
+              ),
             ],
           ),
         ),
         // const SizedBox(height: 14),
         // _BillingSummaryCard(model: model),
+        SelfBillingSection(model: model),
       ],
     );
   }
@@ -838,6 +852,49 @@ class _SummaryRow extends StatelessWidget {
         const Spacer(),
         Text(value, style: style),
       ],
+    );
+  }
+}
+
+class SelfBillingSection extends StatelessWidget {
+  final CreateSelfOrderViewModel model;
+
+  const SelfBillingSection({required this.model});
+
+  String _money(num? v) => (v ?? 0).toStringAsFixed(2);
+
+  @override
+  Widget build(BuildContext context) {
+    final order = model.orderData;
+
+    return _InfoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const _SectionTitle("Billing Summary"),
+          const SizedBox(height: 14),
+
+          // _SummaryRow(
+          //   title: "Subtotal",
+          //   value: "₹${_money(order.netTotal)}",
+          // ),
+          //
+          // const SizedBox(height: 8),
+          //
+          // _SummaryRow(
+          //   title: "Total Tax",
+          //   value: "₹${_money(order.totalTaxesAndCharges)}",
+          // ),
+          //
+          // const Divider(height: 20),
+
+          _SummaryRow(
+            title: "Total",
+            value: "₹${_money(order.grandTotal)}",
+            isBold: true,
+          ),
+        ],
+      ),
     );
   }
 }

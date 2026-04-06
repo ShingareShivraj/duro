@@ -126,6 +126,7 @@ class AddOrderServices {
   Future<String> addOrder(AddOrderModel orderDetails) async {
     baseurl = await geturl();
     try {
+      print("📦 ORDER DATA: ${json.encode(orderDetails)}");
       final response = await _dio.post(
         '$baseurl/api/method/mobile.mobile_env.order.create_order',
         data: json.encode(orderDetails),
@@ -145,7 +146,7 @@ class AddOrderServices {
     try {
       final response = await _dio.post(
         '$baseurl/api/method/mobile.mobile_env.order.create_self_order',
-        data: json.encode(orderDetails),
+        data: orderDetails.toJson(),
         options: Options(headers: {'Authorization': await getTocken()}),
       );
       return true;

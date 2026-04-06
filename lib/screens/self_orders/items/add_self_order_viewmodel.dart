@@ -16,6 +16,7 @@ class CreateSelfOrderViewModel extends BaseViewModel {
   final formKey = GlobalKey<FormState>();
   final searchController = TextEditingController();
   final deliveryDateController = TextEditingController();
+  final descriptionController = TextEditingController();
 
   final Map<int, TextEditingController> _quantityControllers = {};
   final Map<int, TextEditingController> _rateControllers = {};
@@ -242,6 +243,9 @@ class CreateSelfOrderViewModel extends BaseViewModel {
 
     if (selectedItems.isEmpty) {
       _showToast("Please select items first", isError: true);
+
+    print("📦 SELF ORDER DATA: ${orderData.toJson()}");
+
       return;
     }
 
@@ -249,7 +253,10 @@ class CreateSelfOrderViewModel extends BaseViewModel {
     print(selectedItems.toString());
     orderData
       ..items = selectedItems
-      ..deliveryDate = deliveryDateController.text.trim();
+      ..deliveryDate = deliveryDateController.text.trim()
+      ..description = descriptionController.text.trim();
+    print("🧠 DESCRIPTION VALUE: ${descriptionController.text}");
+    print("📦 FINAL SELF ORDER DATA: ${orderData.toJson()}");
 
     try {
       bool res;
@@ -469,7 +476,7 @@ print(orderData.items);
 
     searchController.dispose();
     deliveryDateController.dispose();
-
+    descriptionController.dispose();
     _clearControllers();
 
     super.dispose();

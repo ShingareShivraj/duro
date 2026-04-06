@@ -104,6 +104,8 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                           const SizedBox(height: 15),
                           ItemsSelector(model: model),
                           const SizedBox(height: 5),
+                          const SizedBox(height: 15),
+
                           const Text(
                             'Item List',
                             style: TextStyle(fontWeight: FontWeight.bold),
@@ -114,6 +116,22 @@ class _AddOrderScreenState extends State<AddOrderScreen> {
                           const SizedBox(height: 8),
                           BillingSection(model: model),
                           const SizedBox(height: 25),
+
+                          TextFormField(
+                            controller: model.descriptionController,
+                            maxLines: 3,
+                            decoration: InputDecoration(
+                              labelText: 'Order Description',
+                              hintText: 'Enter order notes or description',
+                              prefixIcon: Icon(Icons.description),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
                           if (model.orderData.docstatus != 2)
                             ActionButtons(model: model),
                         ],
@@ -505,6 +523,7 @@ class SelectedItemCard extends StatelessWidget {
     ((item.discountAmount ?? 0) + (item.distributedDiscountAmount ?? 0))
         .toDouble();
     final total = item.netAmount ?? item.amount;
+    final rateController = model.getRateController(index);
 
     return Container(
       decoration: BoxDecoration(
@@ -577,22 +596,29 @@ class SelectedItemCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.shade50,
-                              borderRadius: BorderRadius.circular(999),
-                              border:
-                              Border.all(color: Colors.green.shade200),
-                            ),
-                            child: Text(
-                              "₹${rate.toStringAsFixed(2)}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.green.shade700,
+
+                          SizedBox(
+                            width: 90,
+                            height: 40,
+                            child: TextField(
+                              controller: rateController,
+                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.center,
+                              decoration: InputDecoration(
+                                labelText: "Rate",
+                                prefixText: "₹ ",
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
+                              onChanged: (value) {
+                                final parsed = double.tryParse(value);
+                                if (parsed != null) {
+                                  model.setItemRate(index, parsed);
+                                }
+                              },
                             ),
                           ),
                         ],

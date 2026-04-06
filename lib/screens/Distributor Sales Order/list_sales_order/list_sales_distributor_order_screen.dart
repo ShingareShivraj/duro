@@ -303,25 +303,25 @@ class _OrderCard extends StatelessWidget {
                         Row(
                           children: [
                             const Icon(Icons.calendar_today_outlined,
-                                size: 12, color: Color(0xFF93C5FD)),
+                                size: 12, color: Color(0xFF000000)),
                             const SizedBox(width: 4),
                             Text(
                               order.transactionDate ?? "No date",
                               style: const TextStyle(
                                 fontSize: 11.5,
-                                color: Color(0xFF93C5FD),
+                                color: Color(0xFF000000),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             const SizedBox(width: 10),
                             const Icon(Icons.local_shipping_outlined,
-                                size: 12, color: Color(0xFF93C5FD)),
+                                size: 12, color: Color(0xFF000000)),
                             const SizedBox(width: 4),
                             Text(
                               order.deliveryDate ?? "N/A",
                               style: const TextStyle(
                                 fontSize: 11.5,
-                                color: Color(0xFF93C5FD),
+                                color: Color(0xFF000000),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -449,14 +449,14 @@ class _OrderCard extends StatelessWidget {
               Row(
                 children: [
                   const Icon(Icons.person_outline_rounded,
-                      size: 13, color: Color(0xFF93C5FD)),
+                      size: 13, color: Color(0xFF000000)),
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
                       order.owner ?? "N/A",
                       style: const TextStyle(
                         fontSize: 11.5,
-                        color: Color(0xFF93C5FD),
+                        color: Color(0xFF000000),
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
@@ -500,7 +500,7 @@ class _InfoBlock extends StatelessWidget {
           label,
           style: const TextStyle(
             fontSize: 11,
-            color: Color(0xFF93C5FD),
+            color: Color(0xFF000000),
             fontWeight: FontWeight.w500,
           ),
         ),

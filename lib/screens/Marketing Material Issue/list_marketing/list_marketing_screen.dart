@@ -14,7 +14,7 @@ class _C {
   static const borderLight = Color(0xFFBFDBFE);
   static const tint        = Color(0xFFEFF6FF);
   static const textHead    = Color(0xFF1E3A8A);
-  static const textMuted   = Color(0xFF93C5FD);
+  static const textMuted   = Color(0xFF000000);
   static const green       = Color(0xFF059669);
   static const greenBg     = Color(0xFFD1FAE5);
   static const greenBorder = Color(0xFF86EFAC);

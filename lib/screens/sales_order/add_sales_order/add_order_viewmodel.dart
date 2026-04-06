@@ -20,7 +20,8 @@ class AddOrderViewModel extends BaseViewModel {
   final customerController = TextEditingController();
   final deliveryDateController = TextEditingController();
   final orderDiscountController = TextEditingController();
-
+  final descriptionController = TextEditingController();
+  final Map<int, TextEditingController> _rateControllers = {};
   DateTime? selectedDeliveryDate;
   String orderId = "";
   String name = "";
@@ -45,6 +46,7 @@ class AddOrderViewModel extends BaseViewModel {
     setBusy(true);
     this.orderId = orderId;
     orderStatus = 0;
+    descriptionController.text = orderData.description ?? "";
 
     try {
       masters = await _service.masters() ?? Masters();
@@ -102,6 +104,7 @@ class AddOrderViewModel extends BaseViewModel {
     }
 
     setBusy(true);
+    orderData.description = descriptionController.text;
     orderData.items = selectedItems;
 
     try {
@@ -115,6 +118,17 @@ class AddOrderViewModel extends BaseViewModel {
     }
 
     setBusy(false);
+  }
+
+  //================== added by shivraj for idit rate==================e
+
+  TextEditingController getRateController(int index) {
+    if (!_rateControllers.containsKey(index)) {
+      _rateControllers[index] = TextEditingController(
+        text: (selectedItems[index].rate ?? 0).toStringAsFixed(2),
+      );
+    }
+    return _rateControllers[index]!;
   }
 
   Future<void> _submitEdit(BuildContext context) async {
@@ -318,7 +332,7 @@ class AddOrderViewModel extends BaseViewModel {
 
   /// Map controllers by item index
   final Map<int, TextEditingController> _quantityControllers = {};
-  final Map<int, TextEditingController> _rateControllers = {};
+
   final Map<int, TextEditingController> _discountControllers = {};
   TextEditingController getQuantityController(int index) {
     if (!_quantityControllers.containsKey(index)) {
@@ -329,14 +343,7 @@ class AddOrderViewModel extends BaseViewModel {
     return _quantityControllers[index]!;
   }
 
-  TextEditingController getRateController(int index) {
-    if (!_rateControllers.containsKey(index)) {
-      final item = selectedItems[index];
-      _rateControllers[index] =
-          TextEditingController(text: item.rate?.toStringAsFixed(2) ?? "0");
-    }
-    return _rateControllers[index]!;
-  }
+
 
   TextEditingController getDiscountController(int index) {
     if (!_discountControllers.containsKey(index)) {

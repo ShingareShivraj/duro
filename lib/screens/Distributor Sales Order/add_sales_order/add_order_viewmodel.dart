@@ -20,7 +20,7 @@ class AddDistributorOrderViewModel extends BaseViewModel {
   final customerController = TextEditingController();
   final deliveryDateController = TextEditingController();
   final orderDiscountController = TextEditingController();
-
+  final Map<int, TextEditingController> _rateControllers = {};
   DateTime? selectedDeliveryDate;
   String orderId = "";
   String name = "";
@@ -321,7 +321,7 @@ print(selectedItems.length);
 
   /// Map controllers by item index
   final Map<int, TextEditingController> _quantityControllers = {};
-  final Map<int, TextEditingController> _rateControllers = {};
+
   final Map<int, TextEditingController> _discountControllers = {};
   TextEditingController getQuantityController(int index) {
     if (!_quantityControllers.containsKey(index)) {

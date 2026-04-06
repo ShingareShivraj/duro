@@ -10,7 +10,7 @@ class AddOrderModel {
   String? orderType;
   String? transactionDate;
   String? deliveryDate;
-
+  String? description;
   int? skipDeliveryNote;
   int? isReverseCharge;
   int? isExportWithGst;
@@ -133,6 +133,7 @@ class AddOrderModel {
       this.doctype,
       this.paymentSchedule,
       this.items,
+      this.description,
       this.taxes});
 
   AddOrderModel.fromJson(Map<String, dynamic> json) {
@@ -147,6 +148,7 @@ class AddOrderModel {
     orderType = json['order_type'];
     transactionDate = json['transaction_date'];
     deliveryDate = json['delivery_date'];
+    description = json['description'];
 
     skipDeliveryNote = json['skip_delivery_note'];
     isReverseCharge = json['is_reverse_charge'];
@@ -232,6 +234,7 @@ class AddOrderModel {
     data['customer_name'] = customerName;
     data['order_type'] = orderType;
     data['transaction_date'] = transactionDate;
+    data['description'] = description;
     data['delivery_date'] = deliveryDate;
 
     data['skip_delivery_note'] = skipDeliveryNote;
