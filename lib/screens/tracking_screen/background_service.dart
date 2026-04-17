@@ -8,7 +8,7 @@ import 'package:flutter_background_service_android/flutter_background_service_an
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'company_auth.dart';
 
 Timer? queueTimer;
@@ -57,6 +57,17 @@ Future<void> initializeService() async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   try {
+
+    final prefs = await SharedPreferences.getInstance();
+    final isCheckedIn = prefs.getBool("is_checked_in") ?? false;
+
+    if (!isCheckedIn) {
+      print("❌ Not checked-in → stopping service");
+
+      service.stopSelf();   // 🔥 STOP FULL SERVICE
+      return;
+    }
+
     if (service is AndroidServiceInstance) {
       service.setAsForegroundService();
       service.setForegroundNotificationInfo(
@@ -177,7 +188,29 @@ Future<void> handleLocationUpdate({
   required String deviceId,
   required Position position,
 }) async {
+
   final prefs = await SharedPreferences.getInstance();
+  final isCheckedIn = prefs.getBool("is_checked_in") ?? false;
+
+  if (!isCheckedIn) {
+    print("❌ User checked-out → stopping tracking");
+
+    positionStream?.cancel();
+    positionStream = null;
+
+    queueTimer?.cancel();
+    queueTimer = null;
+
+    streamRestartTimer?.cancel();
+    streamRestartTimer = null;
+
+    streamStarted = false;
+
+    service.stopSelf();   // 🔥 FULL STOP
+
+    return;
+  }
+
 
   int batteryLevel = await batteryPlugin.batteryLevel;
 
@@ -254,6 +287,12 @@ Future<void> processQueue() async {
 
   List<String> remaining = [];
 
+  final isCheckedIn = prefs.getBool("is_checked_in") ?? false;
+
+  if (!isCheckedIn) {
+    print("Queue stopped → user not checked-in");
+    return;
+  }
   for (String item in queue) {
     Map<String, dynamic> data = jsonDecode(item);
 

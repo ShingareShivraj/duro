@@ -424,20 +424,20 @@ class _OrderCard extends StatelessWidget {
                       value: "${order.totalQty ?? 0}",
                     ),
                   ),
-                  // Container(
-                  //   width: 1,
-                  //   height: 36,
-                  //   margin: const EdgeInsets.symmetric(horizontal: 10),
-                  //   color: const Color(0xFFDBEAFE),
-                  // ),
-                  // Expanded(
-                  //   flex: 2,
-                  //   child: _InfoBlock(
-                  //     label: "Amount",
-                  //     value: "₹${(order.grandTotal ?? 0).toStringAsFixed(0)}",
-                  //     valueColor: const Color(0xFF059669),
-                  //   ),
-                  // ),
+                  Container(
+                    width: 1,
+                    height: 36,
+                    margin: const EdgeInsets.symmetric(horizontal: 10),
+                    color: const Color(0xFFDBEAFE),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: _InfoBlock(
+                      label: "Amount",
+                      value: "₹${(order.grandTotal ?? 0).toStringAsFixed(0)}",
+                      valueColor: const Color(0xFF059669),
+                    ),
+                  ),
                 ],
               ),
 

@@ -11,6 +11,7 @@ import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 
 import '../../constants.dart';
 import '../../model/dashboard.dart';
@@ -18,7 +19,7 @@ import '../../model/emp_data.dart';
 import '../../router.router.dart';
 import '../../services/geolocation_services.dart';
 import '../../services/home_services.dart';
-
+import '../tracking_screen/background_service.dart';
 class HomeViewModel extends BaseViewModel {
   final HomeServices _service = HomeServices();
   final Logger _log = Logger();
@@ -251,7 +252,15 @@ class HomeViewModel extends BaseViewModel {
       );
 
       if (!success) return false;
-
+      final prefs = await SharedPreferences.getInstance();
+      if (logType == "IN") {
+        await prefs.setBool("is_checked_in", true);
+        await initializeService();
+      } else {
+        await prefs.setBool("is_checked_in", false);
+        final service = FlutterBackgroundService();
+        service.invoke("stopService");
+      }
       _commit(() {
         isCheckedIn = logType == "IN";
         _cachedSpendHours = null;

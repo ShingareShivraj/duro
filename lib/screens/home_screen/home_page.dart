@@ -16,6 +16,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:stacked/stacked.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants.dart';
 import '../../router.router.dart';
@@ -45,7 +46,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _ensureTrackingAlive() async {
-    await initializeService();
+    final prefs = await SharedPreferences.getInstance();
+    final isCheckedIn = prefs.getBool("is_checked_in") ?? false;
+
+    if (isCheckedIn) {
+      await initializeService();  // ✅ only start if checked-in
+    }
   }
 
   @override
@@ -999,6 +1005,13 @@ class _QuickActionGridState extends State<QuickActionGrid>
       //     "route": Routes.listDeliveryNoteScreen
       //   },
       {"label": "Visit", "icon": Iconsax.location, "route": Routes.visitScreen},
+
+        {
+          "label": "Sales Incentive",
+          "icon": Iconsax.money,
+          "route": Routes.salesIncentiveScreen
+
+        },
     ];
 
     // HR
