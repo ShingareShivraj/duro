@@ -4,6 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocation/model/sales_person_commission.dart';
 import 'package:logger/logger.dart';
+import 'package:geolocation/model/territory_summary_model.dart';
+import 'package:geolocation/model/leaderboard_model.dart';
 
 import '../constants.dart';
 import '../model/Sales Person target model.dart';
@@ -96,6 +98,80 @@ class ReportServices {
     } on DioException catch (e) {
       Logger().e(e.response?.data);
       Fluttertoast.showToast(msg: "Unauthorized Orders!");
+      return [];
+    }
+  }
+
+  Future<List<TerritorySummary>> fetchTerritorySummary(String period) async {
+    baseurl = await geturl();
+    try {
+      var dio = Dio();
+      var response = await dio.request(
+        '$baseurl/api/method/mobile.mobile_env.app.territory_summary_report',
+        options: Options(
+          method: 'GET',
+          headers: {'Authorization': await getTocken()},
+        ),
+        queryParameters: {
+          "period": period, // Daily / Monthly / Yearly
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData = json.decode(json.encode(response.data));
+
+        List<TerritorySummary> list = List.from(jsonData['data'])
+            .map<TerritorySummary>(
+                (data) => TerritorySummary.fromJson(data))
+            .toList();
+
+        return list;
+      } else {
+        Fluttertoast.showToast(msg: "Unable to fetch Territory report");
+        return [];
+      }
+    } on DioException catch (e) {
+      Logger().e(e.response?.data);
+      Fluttertoast.showToast(msg: "Unauthorized!");
+      return [];
+    }
+  }
+
+  Future<List<LeaderboardModel>> fetchLeaderboard(String period) async {
+    baseurl = await geturl();
+
+    try {
+      var dio = Dio();
+
+      var response = await dio.request(
+        '$baseurl/api/method/mobile.mobile_env.app.get_sales_leaderboard',
+        options: Options(
+          method: 'GET',
+          headers: {'Authorization': await getTocken()},
+        ),
+        queryParameters: {
+          "period": period,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Map<String, dynamic> jsonData =
+        json.decode(json.encode(response.data));
+
+        // 🔥 IMPORTANT: use 'data'
+        List<LeaderboardModel> list = List.from(jsonData['data'])
+            .map<LeaderboardModel>(
+                (data) => LeaderboardModel.fromJson(data))
+            .toList();
+
+        return list;
+      } else {
+        Fluttertoast.showToast(msg: "Unable to fetch leaderboard");
+        return [];
+      }
+    } on DioException catch (e) {
+      Logger().e(e.response?.data);
+      Fluttertoast.showToast(msg: "Unauthorized!");
       return [];
     }
   }

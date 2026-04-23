@@ -37,16 +37,11 @@ class SalesIncentiveScreen extends StatelessWidget {
   const SalesIncentiveScreen({super.key});
 
   // Sample data — swap with your real API/state
-  static const int totalTarget = 1000;
-  static const int totalAchieved = 720;
-  static const int incentiveAmount = 8000;
-  static const double incentiveThreshold = 0.80; // 80%
-  static const int bagsToUnlock = 80;
 
 
 
-  int get totalPending => totalTarget - totalAchieved;
-  double get overallProgress => totalAchieved / totalTarget;
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +86,9 @@ class SalesIncentiveScreen extends StatelessWidget {
 
                             // Incentive Card
                             _IncentiveCard(
-                              thresholdPercent:
-                              (model.incentiveThreshold * 100).toInt(),
+                              thresholdPercent: 100, // not used anymore
                               amount: model.incentiveAmount,
-                              isInProgress:
-                              model.overallProgress < model.incentiveThreshold,
+                              isInProgress: model.incentiveAmount == 0,
                             ),
 
                             const SizedBox(height: 20),
@@ -114,9 +107,7 @@ class SalesIncentiveScreen extends StatelessWidget {
                             const SizedBox(height: 8),
 
                             // Bottom nudge banner
-                            _IncentiveNudgeBanner(
-                              bagsNeeded: model.bagsToUnlock,
-                            ),
+
                           ],
                         ),
                       ),
@@ -385,7 +376,7 @@ class _StatChip extends StatelessWidget {
 
 class _IncentiveCard extends StatelessWidget {
   final int thresholdPercent;
-  final int amount;
+  final double amount;
   final bool isInProgress;
 
   const _IncentiveCard({
@@ -460,14 +451,14 @@ class _IncentiveCard extends StatelessWidget {
                         color: Colors.grey[800],
                       ),
                     ),
-                    Text(
-                      '$thresholdPercent% Target Required',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFFD97706),
-                      ),
-                    ),
+                    // Text(
+                    //   '$thresholdPercent% Target Required',
+                    //   style: const TextStyle(
+                    //     fontSize: 14,
+                    //     fontWeight: FontWeight.w600,
+                    //     color: Color(0xFFD97706),
+                    //   ),
+                    // ),
                   ],
                 ),
 
@@ -490,8 +481,8 @@ class _IncentiveCard extends StatelessWidget {
                         color: Colors.grey[800],
                       ),
                     ),
-                    const Text(
-                      '₹8,000',
+                    Text(
+                      '₹${amount.toStringAsFixed(0)}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -540,7 +531,9 @@ class _ProductProgressTile extends StatelessWidget {
                   color: Color(0xFF1A1A1A),
                 ),
               ),
-              Row(
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     '${product.achieved} / ${product.target}',
@@ -550,14 +543,17 @@ class _ProductProgressTile extends StatelessWidget {
                       color: Colors.grey[600],
                     ),
                   ),
-                  if (product.isCompleted) ...[
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      size: 16,
-                      color: Color(0xFF16A34A),
+
+                  // 🔥 NEW: INCENTIVE PER PRODUCT
+                  if (product.incentive > 0)
+                    Text(
+                      '₹${product.incentive.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF16A34A),
+                      ),
                     ),
-                  ],
                 ],
               ),
             ],

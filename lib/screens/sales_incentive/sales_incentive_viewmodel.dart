@@ -5,20 +5,16 @@ import '../../model/sales_incentive_model.dart';
 class SalesIncentiveViewModel extends BaseViewModel {
   int totalTarget = 1000;
   int totalAchieved = 720;
-  int incentiveAmount = 8000;
-  double incentiveThreshold = 0.8;
-  int bagsToUnlock = 80;
+  double incentiveAmount = 0;
+
   String selectedPeriod = "monthly";
   final _service = SalesIncentiveServices();
 
-  List<ProductProgress> products = [
-    ProductProgress(name: 'Durocon 500', achieved: 320, target: 500),
-    ProductProgress(name: 'Durocon 510', achieved: 300, target: 300),
-    ProductProgress(name: 'Durocon 520', achieved: 100, target: 200),
-  ];
+  List<ProductProgress> products = [];
 
   int get totalPending => totalTarget - totalAchieved;
-  double get overallProgress => totalAchieved / totalTarget;
+  double get overallProgress =>
+      totalTarget == 0 ? 0 : totalAchieved / totalTarget;
 
   Future<void> initialise() async {
     setBusy(true);

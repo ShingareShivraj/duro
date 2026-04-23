@@ -552,6 +552,16 @@ class _HomePageState extends State<HomePage> {
                             context, Routes.listOrderScreen),
                       ),
                     ),
+
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16.0),
+                      child: _QuickActionCard(
+                        icon: Iconsax.money,
+                        label: "Incentive",
+                        onTap: () => Navigator.pushNamed(
+                            context, Routes.salesIncentiveScreen),
+                      ),
+                    ),
                   if (model.isFormAvailableForDocType("Expense Claim"))
                     Padding(
                       padding: const EdgeInsets.only(right: 16.0),

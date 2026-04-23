@@ -7,6 +7,7 @@ class SearchCustomerList {
   SearchCustomerList.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     customerName = json['customer_name'];
+
   }
 
   Map<String, dynamic> toJson() {

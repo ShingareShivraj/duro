@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocation/screens/reports/sales_transaction_summary/sales_transaction_summary_screen.dart';
 import 'package:geolocation/screens/reports/target_variance_report/target_variance_screen.dart';
+import 'package:geolocation/screens/reports/territory_summary/territory_summary_screen.dart';
+import 'package:geolocation/screens/reports/leaderboard/leaderboard_screen.dart';
 
 import 'sales_comission_summary/sales_commission_screen.dart';
 
@@ -8,38 +10,65 @@ class ReportsPage extends StatelessWidget {
   ReportsPage({super.key});
 
   final List<Report> reports = [
+    // Report(
+    //   title: 'Sales Person Target Variance',
+    //   description: 'Target variance based on item group',
+    //   onTap: (context) {
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => SalesTargetScreen()),
+    //     );
+    //   },
+    // ),
+    // Report(
+    //   title: 'Sales Person-wise Transaction',
+    //   description: 'Transaction summary by sales person',
+    //   onTap: (context) {
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(
+    //           builder: (context) => SalesTransactionSummaryScreen()),
+    //     );
+    //   },
+    // ),
+    // Report(
+    //   title: 'Sales Person Commission Summary',
+    //   description: 'Commission details for sales personnel',
+    //   onTap: (context) {
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(
+    //           builder: (context) => SalesCommissionSummaryScreen()),
+    //     );
+    //   },
+    // ),
+
     Report(
-      title: 'Sales Person Target Variance',
-      description: 'Target variance based on item group',
-      onTap: (context) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SalesTargetScreen()),
-        );
-      },
-    ),
-    Report(
-      title: 'Sales Person-wise Transaction',
-      description: 'Transaction summary by sales person',
+      title: 'Territory Summary',
+      description: 'Rank-wise territory performance (Daily / Monthly / Yearly)',
       onTap: (context) {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SalesTransactionSummaryScreen()),
+            builder: (context) => const TerritorySummaryScreen(),
+          ),
         );
       },
     ),
+
     Report(
-      title: 'Sales Person Commission Summary',
-      description: 'Commission details for sales personnel',
+      title: 'Sales Leaderboard',
+      description: 'Rank wise performance (Sales / Orders / Visits)',
       onTap: (context) {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => SalesCommissionSummaryScreen()),
+            builder: (context) => const LeaderboardScreen(),
+          ),
         );
       },
     ),
+
     // Report(
     //   title: 'Sales Summary Report',
     //   description: 'Overall transaction and performance summary',
