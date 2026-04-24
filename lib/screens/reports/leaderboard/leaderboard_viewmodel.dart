@@ -4,20 +4,40 @@ import 'package:stacked/stacked.dart';
 
 class LeaderboardViewModel extends BaseViewModel {
   List<LeaderboardModel> data = [];
+
+  /// Default period (used when screen opened directly)
   String selectedPeriod = "Monthly";
 
-  Future<void> initialize() async {
+  /// 🔥 Initialize (handles both cases: with/without period)
+  Future<void> initialize([String? period]) async {
+    if (period != null && period.isNotEmpty) {
+      selectedPeriod = period;
+    }
+
     await fetchData();
   }
 
+  /// 🔥 Fetch data from API
   Future<void> fetchData() async {
     setBusy(true);
-    data = await ReportServices().fetchLeaderboard(selectedPeriod);
+
+    try {
+      final result =
+      await ReportServices().fetchLeaderboard(selectedPeriod);
+
+      data = result ?? [];
+    } catch (e) {
+      data = [];
+    }
+
     setBusy(false);
     notifyListeners();
   }
 
+  /// 🔥 Change period from UI
   void changePeriod(String period) async {
+    if (selectedPeriod == period) return; // avoid duplicate API call
+
     selectedPeriod = period;
     await fetchData();
   }

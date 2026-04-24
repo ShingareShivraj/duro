@@ -33,6 +33,8 @@ import 'package:geolocation/screens/visit_screens/visit_List/visit_list_screen.d
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:geolocation/screens/sales_incentive/sales_incentive_screen.dart';
+import 'package:geolocation/screens/reports/territory_summary/territory_summary_screen.dart';
+import 'package:geolocation/screens/reports/leaderboard/leaderboard_screen.dart';
 
 import 'screens/delivery_note_list.dart';
 import 'screens/lead_screen/lead_list/lead_screen.dart';
@@ -76,7 +78,20 @@ import 'screens/retailer_registration/add_retailer/add_retailer_screen.dart';
     MaterialRoute(page: DeliveryNoteScreen),
     MaterialRoute(page: ListSelfOrderScreen),
     MaterialRoute(page: CreateSelfOrderScreen),
-    MaterialRoute(page: SalesIncentiveScreen)
+    MaterialRoute(page: SalesIncentiveScreen),
+    MaterialRoute(
+      page: LeaderboardScreen,
+      arguments: [
+        Argument('period', type: String, isRequired: false),
+      ],
+    ),
+
+    MaterialRoute(
+      page: TerritorySummaryScreen,
+      arguments: [
+        Argument('period', type: String, isRequired: false),
+      ],
+    ),
 
 
     // DetailedFarmerScreen

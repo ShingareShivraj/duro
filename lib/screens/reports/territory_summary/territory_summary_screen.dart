@@ -4,6 +4,7 @@ import 'package:geolocation/widgets/full_screen_loader.dart';
 import 'package:stacked/stacked.dart';
 import 'package:geolocation/widgets/period_filter_chip.dart';
 
+
 class TerritorySummaryScreen extends StatelessWidget {
   const TerritorySummaryScreen({super.key});
 
@@ -11,7 +12,11 @@ class TerritorySummaryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<TerritorySummaryViewModel>.reactive(
       viewModelBuilder: () => TerritorySummaryViewModel(),
-      onViewModelReady: (vm) => vm.initialize(),
+      onViewModelReady: (vm) {
+        final String? period =
+        ModalRoute.of(context)?.settings.arguments as String?;
+        vm.initialize(period);
+      },
       builder: (context, vm, child) {
         return Scaffold(
           appBar: AppBar(

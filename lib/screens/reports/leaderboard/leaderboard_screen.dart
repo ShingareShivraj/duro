@@ -3,6 +3,7 @@ import 'package:geolocation/screens/reports/leaderboard/leaderboard_viewmodel.da
 import 'package:geolocation/widgets/period_filter_chip.dart';
 import 'package:stacked/stacked.dart';
 
+
 class LeaderboardScreen extends StatelessWidget {
   const LeaderboardScreen({super.key});
 
@@ -10,7 +11,11 @@ class LeaderboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ViewModelBuilder<LeaderboardViewModel>.reactive(
       viewModelBuilder: () => LeaderboardViewModel(),
-      onViewModelReady: (vm) => vm.initialize(),
+      onViewModelReady: (vm) {
+        final String? period =
+        ModalRoute.of(context)?.settings.arguments as String?;
+        vm.initialize(period);
+      },
       builder: (context, vm, child) {
         return Scaffold(
           appBar: AppBar(

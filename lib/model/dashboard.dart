@@ -1,3 +1,6 @@
+import 'package:geolocation/model/territory_summary_model.dart';
+import 'package:geolocation/model/leaderboard_model.dart';
+
 class DashBoard {
   String? inTime;
   String? outTime;
@@ -13,75 +16,108 @@ class DashBoard {
   String? company;
   String? employeeImage;
   bool? isEmployee;
-  MonthlySummary? monthlySummary;
 
-  DashBoard(
-      {this.inTime,
-      this.outTime,
-      this.lastLogType,
-      this.lastLogTime,
-      this.lastLocation,
-      this.salesPerson,
-      this.role,
-      this.trackingEnabled,
-      this.territorylist,
-      this.empName,
-      this.email,
-      this.company,
-      this.employeeImage,
-      this.isEmployee,
-      this.monthlySummary});
+  // 🔥 NEW FIELDS
+  Summary? summary;
+  List<TerritorySummary>? territory;
+  List<LeaderboardModel>? leaderboard;
+
+  DashBoard({
+    this.inTime,
+    this.outTime,
+    this.lastLogType,
+    this.lastLogTime,
+    this.lastLocation,
+    this.salesPerson,
+    this.role,
+    this.trackingEnabled,
+    this.territorylist,
+    this.empName,
+    this.email,
+    this.company,
+    this.employeeImage,
+    this.isEmployee,
+    this.summary,
+    this.territory,
+    this.leaderboard,
+  });
 
   DashBoard.fromJson(Map<String, dynamic> json) {
     inTime = json['in_time'];
     outTime = json['out_time'];
     lastLogType = json['last_log_type'];
     lastLogTime = json['last_log_time'];
+
     lastLocation = json['last_location'] != null
-        ? new LastLocation.fromJson(json['last_location'])
+        ? LastLocation.fromJson(json['last_location'])
         : null;
+
     if (json['sales_person'] != null) {
       salesPerson = <SalesPerson>[];
       json['sales_person'].forEach((v) {
-        salesPerson!.add(new SalesPerson.fromJson(v));
+        salesPerson!.add(SalesPerson.fromJson(v));
       });
     }
+
     role = json['role'];
     trackingEnabled = json['tracking_enabled'];
-    territorylist = json['territorylist'].cast<String>();
+    territorylist = json['territorylist']?.cast<String>();
     empName = json['emp_name'];
     email = json['email'];
     company = json['company'];
     employeeImage = json['employee_image'];
     isEmployee = json['is_employee'];
-    monthlySummary = json['monthly_summary'] != null
-        ? new MonthlySummary.fromJson(json['monthly_summary'])
-        : null;
+
+    // 🔥 NEW SUMMARY
+    summary =
+    json['summary'] != null ? Summary.fromJson(json['summary']) : null;
+
+    // 🔥 TERRITORY
+    territory = json['territory'] != null
+        ? List.from(json['territory'])
+        .map((e) => TerritorySummary.fromJson(e))
+        .toList()
+        : [];
+
+    // 🔥 LEADERBOARD
+    leaderboard = json['leaderboard'] != null
+        ? List.from(json['leaderboard'])
+        .map((e) => LeaderboardModel.fromJson(e))
+        .toList()
+        : [];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['in_time'] = this.inTime;
-    data['out_time'] = this.outTime;
-    data['last_log_type'] = this.lastLogType;
-    data['last_log_time'] = this.lastLogTime;
-    if (this.lastLocation != null) {
-      data['last_location'] = this.lastLocation!.toJson();
+    final Map<String, dynamic> data = {};
+
+    data['in_time'] = inTime;
+    data['out_time'] = outTime;
+    data['last_log_type'] = lastLogType;
+    data['last_log_time'] = lastLogTime;
+
+    if (lastLocation != null) {
+      data['last_location'] = lastLocation!.toJson();
     }
-    if (this.salesPerson != null) {
-      data['sales_person'] = this.salesPerson!.map((v) => v.toJson()).toList();
+
+    if (salesPerson != null) {
+      data['sales_person'] =
+          salesPerson!.map((v) => v.toJson()).toList();
     }
-    data['role'] = this.role;
-    data['tracking_enabled'] = this.trackingEnabled;
-    data['territorylist'] = this.territorylist;
-    data['emp_name'] = this.empName;
-    data['email'] = this.email;
-    data['company'] = this.company;
-    data['employee_image'] = this.employeeImage;
-    data['is_employee'] = this.isEmployee;
-    if (this.monthlySummary != null) {
-      data['monthly_summary'] = this.monthlySummary!.toJson();
-    }
+
+    data['role'] = role;
+    data['tracking_enabled'] = trackingEnabled;
+    data['territorylist'] = territorylist;
+    data['emp_name'] = empName;
+    data['email'] = email;
+    data['company'] = company;
+    data['employee_image'] = employeeImage;
+    data['is_employee'] = isEmployee;
+
+    // 🔥 SAFE (NO toJson required)
+    data['summary'] = summary;
+    data['territory'] = territory;
+    data['leaderboard'] = leaderboard;
+
     return data;
   }
 }
@@ -218,5 +254,23 @@ class Visit {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['total'] = this.total;
     return data;
+  }
+}
+
+class Summary {
+  Visit? visit;
+  Visit? attendance;
+  Visit? leave;
+  Visit? orders;
+  Visit? leads;
+  Visit? tours;
+
+  Summary.fromJson(Map<String, dynamic> json) {
+    visit = json['visit'] != null ? Visit.fromJson(json['visit']) : null;
+    attendance = json['attendance'] != null ? Visit.fromJson(json['attendance']) : null;
+    leave = json['leave'] != null ? Visit.fromJson(json['leave']) : null;
+    orders = json['orders'] != null ? Visit.fromJson(json['orders']) : null;
+    leads = json['leads'] != null ? Visit.fromJson(json['leads']) : null;
+    tours = json['tours'] != null ? Visit.fromJson(json['tours']) : null;
   }
 }

@@ -15,10 +15,10 @@ class HomeServices {
   final Dio _dio = Dio();
   final Logger _logger = Logger();
 
-  Future<DashBoard?> dashboard() async {
+  Future<DashBoard?> dashboard(String period) async {
     try {
       final url =
-          '${await geturl()}/api/method/mobile.mobile_env.app.get_dashboard';
+          '${await geturl()}/api/method/mobile.mobile_env.app.get_dashboard?period=$period';
       final response = await _dio.get(
         url,
         options: Options(headers: {'Authorization': await getTocken()}),

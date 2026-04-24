@@ -17,6 +17,7 @@ import 'package:intl/intl.dart';
 import 'package:slide_to_act/slide_to_act.dart';
 import 'package:stacked/stacked.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocation/widgets/period_filter_chip.dart';
 
 import '../../constants.dart';
 import '../../router.router.dart';
@@ -661,69 +662,89 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 16),
                     weeklySummary(model.weekData),
-                    const SizedBox(height: 16),
-                    weeklyBarChart(model.weekData),
+                    // const SizedBox(height: 16),
+                    // weeklyBarChart(model.weekData),
                   ]),
             ),
             const SizedBox(height: 24),
 
             /// ===== MONTH SUMMARY =====
             Text(
-              "This Month Summary",
+              "${model.selectedPeriod} Summary",
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                PeriodFilterChip(
+                  period: "Daily",
+                  selectedPeriod: model.selectedPeriod,
+                  onSelected: model.changePeriod,
+                ),
+                PeriodFilterChip(
+                  period: "Monthly",
+                  selectedPeriod: model.selectedPeriod,
+                  onSelected: model.changePeriod,
+                ),
+                PeriodFilterChip(
+                  period: "Yearly",
+                  selectedPeriod: model.selectedPeriod,
+                  onSelected: model.changePeriod,
+                ),
+              ],
+            ),
+
+
             const SizedBox(height: 12),
             GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: 6,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.4, // 🔥 gives enough height
+                crossAxisCount: 3,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1.1, // 🔥 gives enough height
               ),
               itemBuilder: (context, index) {
                 final summaries = [
                   {
                     "title": "Visits",
-                    "value":
-                        model.monthlySummary.visit?.total.toString() ?? "0",
+                    "value":model.dashboard.summary?.visit?.total ?? 0,
                     "icon": Icons.location_on,
                     "color": Colors.blue,
                   },
                   {
                     "title": "Attendance",
-                    "value": model.monthlySummary.attendance?.total ?? 0,
+                    "value": model.dashboard.summary?.attendance?.total ?? 0,
                     "icon": Icons.how_to_reg,
                     "color": Colors.green,
                   },
                   {
                     "title": "Leaves",
-                    "value": model.monthlySummary.leave?.total ?? 0,
+                    "value": model.dashboard.summary?.leave?.total ?? 0,
                     "icon": Icons.beach_access,
                     "color": Colors.orange,
                   },
                   {
                     "title": "Orders",
-                    "value": model.monthlySummary.orders?.total ?? 0,
+                    "value": model.dashboard.summary?.orders?.total ?? 0,
                     "icon": Icons.shopping_cart,
                     "color": Colors.purple,
                   },
                   {
                     "title": "Leads",
-                    "value":
-                        model.monthlySummary.leads?.total.toString() ?? "0",
+                    "value":model.dashboard.summary?.leads?.total ?? 0,
                     "icon": Icons.leaderboard,
                     "color": Colors.redAccent,
                   },
                   {
                     "title": "Tours",
-                    "value":
-                        model.monthlySummary.tours?.total.toString() ?? "0",
+                    "value":model.dashboard.summary?.tours?.total ?? 0,
                     "icon": Icons.location_on_outlined,
                     "color": Colors.orangeAccent,
                   }
@@ -737,6 +758,156 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+
+            const SizedBox(height: 16),
+
+            _buildSectionCard(
+              title: "Sales Leaderboard",
+              onViewAll: () =>
+                  Navigator.pushNamed(
+                    context,
+                    Routes.leaderboardScreen,
+                    arguments: model.selectedPeriod,
+                  ),
+              child: model.isBusy
+                  ? const Center(child: CircularProgressIndicator())
+                  : (model.dashboard.leaderboard ?? []).isEmpty
+                  ? const Center(child: Text("No data available"))
+                  : SizedBox(
+                height: 220,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columnSpacing: 12,
+                        dataRowMinHeight: 28,
+                        dataRowMaxHeight: 32,
+                        headingRowHeight: 32,
+                        headingTextStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                        dataTextStyle: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black87,
+                        ),
+                        headingRowColor:
+                        MaterialStateProperty.all(Colors.grey.shade100),
+
+                        columns: const [
+                          DataColumn(label: Text("Rank")),
+                          DataColumn(label: Text("Sales Person")),
+                          DataColumn(label: Text("Sales")),
+                          DataColumn(label: Text("Orders")),
+                          DataColumn(label: Text("Visits")),
+                        ],
+
+                        rows: (model.dashboard.leaderboard ?? [])
+                            .map((e) => DataRow(
+                          color:
+                          MaterialStateProperty.resolveWith((states) {
+                            if (e.rank == 1) {
+                              return Colors.blue;
+                            }
+                            return null;
+                          }),
+                          cells: [
+                            DataCell(Text(e.rank.toString())),
+                            DataCell(Text(e.salesPerson)),
+                            DataCell(Text(e.totalSales.toStringAsFixed(0))),
+                            DataCell(Text(e.orders.toString())),
+                            DataCell(Text(e.visits.toString())),
+                          ],
+                        ))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildSectionCard(
+              title: "Territory Summary",
+              onViewAll: () =>
+                  Navigator.pushNamed(
+                    context,
+                    Routes.territorySummaryScreen,
+                    arguments: model.selectedPeriod,
+                  ),
+              child: model.isBusy
+                  ? const Center(child: CircularProgressIndicator())
+                  : (model.dashboard.territory ?? []).isEmpty
+                  ? const Center(child: Text("No data available"))
+                  : SizedBox(
+                height: 220,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columnSpacing: 12,
+                        dataRowMinHeight: 28,
+                        dataRowMaxHeight: 32,
+                        headingRowHeight: 32,
+                        headingTextStyle: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                        dataTextStyle: const TextStyle(
+                          fontSize: 11,
+                          color: Colors.black87,
+                        ),
+                        headingRowColor:
+                        MaterialStateProperty.all(Colors.grey.shade100),
+
+                        columns: const [
+                          DataColumn(label: Text("Rank")),
+                          DataColumn(label: Text("Territory")),
+                          DataColumn(label: Text("Active")),
+                          DataColumn(label: Text("Non Active")),
+                          DataColumn(label: Text("New")),
+                          DataColumn(label: Text("Converted")),
+                          DataColumn(label: Text("Leads")),
+                        ],
+
+                        rows: (model.dashboard.territory ?? [])
+                            .map((e) => DataRow(
+                          color:
+                          MaterialStateProperty.resolveWith((states) {
+                            if (e.rank == 1) {
+                              return Colors.blue;
+                            }
+                            return null;
+                          }),
+                          cells: [
+                            DataCell(Text(e.rank.toString())),
+                            DataCell(Text(e.territory)),
+                            DataCell(Text(e.active.toString())),
+                            DataCell(Text(e.nonActive.toString())),
+                            DataCell(Text(e.newCustomers.toString())),
+                            DataCell(Text(e.converted.toString())),
+                            DataCell(Text(e.leads.toString())),
+                          ],
+                        ))
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+
           ]
         ]),
       ),
@@ -841,7 +1012,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget weeklySummary(List<SalesPerson> data) {
     final totalVisits =
-        data.fold<int>(0, (sum, e) => sum + (e.visitCount ?? 0));
+        data.fold<int>(0, (sum, e) => sum + ((e.visitCount ?? 0) as int));
     final totalTours = data.fold<int>(0, (sum, e) => sum + (e.tourCount ?? 0));
 
     return Row(
@@ -885,6 +1056,54 @@ class _HomePageState extends State<HomePage> {
                     const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           ],
         ),
+      ),
+    );
+  }
+
+
+  Widget _buildSectionCard({
+    required String title,
+    required Widget child,
+    required VoidCallback onViewAll,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              // TextButton(
+              //   onPressed: onViewAll,
+              //   child: const Text("View All →"),
+              // )
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          /// CONTENT
+          child,
+        ],
       ),
     );
   }
@@ -943,13 +1162,13 @@ class MonthSummary extends StatelessWidget {
           const SizedBox(height: 4),
 
           /// SUB TEXT
-          const Text(
-            "Total Count",
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
-            ),
-          ),
+          // const Text(
+          //   "Total Count",
+          //   style: TextStyle(
+          //     fontSize: 12,
+          //     color: Colors.grey,
+          //   ),
+          // ),
         ],
       ),
     );
@@ -1081,7 +1300,7 @@ class _QuickActionGridState extends State<QuickActionGrid>
           "screen": MarketingListScreen()
         },
       {"label": "Tours", "icon": Iconsax.calendar, "screen": ListTourScreen()},
-      {"label": "Reports", "icon": Iconsax.receipt, "screen": ReportsPage()},
+      //{"label": "Reports", "icon": Iconsax.receipt, "screen": ReportsPage()},
     ];
 
     sections = {

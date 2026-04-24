@@ -27,7 +27,7 @@ class HomeViewModel extends BaseViewModel {
 
   // ───────────────────────────────────────── Core Data ─────────────────────────────────────────
   DashBoard? _dashboard;
-  DashBoard get dashboard => _dashboard ?? DashBoard();
+  DashBoard get dashboard => _dashboard!;
 
   EmpData? employeeData;
   List<String> availableDocTypes = [];
@@ -40,11 +40,12 @@ class HomeViewModel extends BaseViewModel {
   bool loadingIn = false;
   bool loadingOut = false;
 
-  MonthlySummary monthlySummary = MonthlySummary();
+
   List<SalesPerson> salesList = [];
   List<SalesPerson> weekData = [];
 
   String greeting = "";
+  String selectedPeriod = "Monthly";
 
   // ───────────────────────────────────────── Territory ─────────────────────────────────────────
   String? selectedTerritory;
@@ -79,7 +80,7 @@ class HomeViewModel extends BaseViewModel {
       final prefs = await _prefsInstance;
 
       final results = await Future.wait([
-        _service.dashboard(),
+        _service.dashboard(selectedPeriod),
         _service.getEmpName(),
         _service.fetchRoles(),
       ]);
@@ -100,7 +101,7 @@ class HomeViewModel extends BaseViewModel {
           prefs.remove("selected_territory");
         }
 
-        monthlySummary = _dashboard?.monthlySummary ?? MonthlySummary();
+
         salesList = _dashboard?.salesPerson ?? [];
         weekData = _weeklyData(salesList);
 
@@ -123,6 +124,23 @@ class HomeViewModel extends BaseViewModel {
         msg: "Failed to load dashboard",
       );
     }
+  }
+
+
+  Future<void> changePeriod(String period) async {
+    selectedPeriod = period;
+    setBusy(true);
+
+    final data = await _service.dashboard(period);
+
+    if (data != null) {
+      _dashboard = data;
+
+      // 🔥 update new data
+      notifyListeners();
+    }
+
+    setBusy(false);
   }
 
   bool _isAuthError(Object error) {
@@ -208,12 +226,12 @@ class HomeViewModel extends BaseViewModel {
 
   Future<void> onRefresh() async {
     try {
-      final dashboard = await _service.dashboard();
+      final dashboard = await _service.dashboard(selectedPeriod);
       if (dashboard == null) return;
 
       _dashboard = dashboard;
       territoryList = dashboard.territorylist ?? [];
-      monthlySummary = dashboard.monthlySummary ?? MonthlySummary();
+
       salesList = dashboard.salesPerson ?? [];
       weekData = _weeklyData(salesList);
 
@@ -266,7 +284,7 @@ class HomeViewModel extends BaseViewModel {
         _cachedSpendHours = null;
       });
 
-      _dashboard = await _service.dashboard();
+      _dashboard = await _service.dashboard(selectedPeriod);
       return true;
     } catch (e) {
       Fluttertoast.showToast(msg: "Failed to record log");
