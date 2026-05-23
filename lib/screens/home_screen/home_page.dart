@@ -40,6 +40,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ScrollController _leaderboardHorizontal = ScrollController();
+  final ScrollController _leaderboardVertical = ScrollController();
+
+  final ScrollController _territoryHorizontal = ScrollController();
+  final ScrollController _territoryVertical = ScrollController();
   @override
   void initState() {
     super.initState();
@@ -699,16 +704,430 @@ class _HomePageState extends State<HomePage> {
             ),
 
 
+            // SizedBox(
+            //   height: 300,
+            //   child: Column(
+            //     children: [
+            //
+            //       // ✅ HEADER (Horizontal scroll only)
+            //       SingleChildScrollView(
+            //         scrollDirection: Axis.horizontal,
+            //         controller: _leaderboardHorizontal,
+            //         child: DataTable(
+            //           columns: const [
+            //             DataColumn(label: Text("Trend")),
+            //             DataColumn(label: Text("Sales Person")),
+            //             DataColumn(label: Text("Sales")),
+            //           ],
+            //           rows: const [], // ❗ EMPTY
+            //         ),
+            //       ),
+            //
+            //       // ✅ BODY (Vertical + Horizontal)
+            //       Expanded(
+            //         child: Scrollbar(
+            //           thumbVisibility: true,
+            //           child: SingleChildScrollView(
+            //             controller: _leaderboardVertical,
+            //             scrollDirection: Axis.vertical,
+            //             child: SingleChildScrollView(
+            //               controller: _leaderboardHorizontal, // 🔥 SAME controller
+            //               scrollDirection: Axis.horizontal,
+            //               child: DataTable(
+            //                 columns: const [
+            //                   DataColumn(label: Text("")),
+            //                   DataColumn(label: Text("")),
+            //                   DataColumn(label: Text("")),
+            //                 ],
+            //                 rows: (model.dashboard.leaderboard ?? [])
+            //                     .map((e) => DataRow(
+            //                   cells: [
+            //                     // SAME YOUR EXISTING CELLS (NO CHANGE)
+            //                     DataCell(Container(
+            //                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            //                       decoration: BoxDecoration(
+            //                         color: e.trend == "up"
+            //                             ? Colors.green.withOpacity(0.1)
+            //                             : e.trend == "down"
+            //                             ? Colors.red.withOpacity(0.1)
+            //                             : Colors.grey.withOpacity(0.1),
+            //                         borderRadius: BorderRadius.circular(6),
+            //                       ),
+            //                       child: Row(
+            //                         mainAxisSize: MainAxisSize.min,
+            //                         children: [
+            //                           Text(
+            //                             "${e.percentage?.toStringAsFixed(0) ?? 0}%",
+            //                             style: TextStyle(
+            //                               color: e.trend == "up"
+            //                                   ? Colors.green
+            //                                   : e.trend == "down"
+            //                                   ? Colors.red
+            //                                   : Colors.grey,
+            //                               fontWeight: FontWeight.bold,
+            //                               fontSize: 13,
+            //                             ),
+            //                           ),
+            //                           const SizedBox(width: 4),
+            //                           Icon(
+            //                             e.trend == "up"
+            //                                 ? Icons.arrow_upward
+            //                                 : e.trend == "down"
+            //                                 ? Icons.arrow_downward
+            //                                 : Icons.remove,
+            //                             size: 16,
+            //                             color: e.trend == "up"
+            //                                 ? Colors.green
+            //                                 : e.trend == "down"
+            //                                 ? Colors.red
+            //                                 : Colors.grey,
+            //                           ),
+            //                         ],
+            //                       ),
+            //                     ),
+            //                     ), // paste your trend container
+            //                     DataCell(Column(
+            //                       crossAxisAlignment: CrossAxisAlignment.start,
+            //                       mainAxisAlignment: MainAxisAlignment.center,
+            //                       children: [
+            //                         Text(
+            //                           e.salesPerson,
+            //                           style: const TextStyle(
+            //                             fontWeight: FontWeight.w600,
+            //                             fontSize: 13,
+            //                           ),
+            //                         ),
+            //                         const SizedBox(height: 2),
+            //                         Text(
+            //                           "O: ${e.orders}   V: ${e.visits}",
+            //                           style: TextStyle(
+            //                             fontSize: 9,
+            //                             color: Colors.grey.shade600,
+            //                           ),
+            //                         ),
+            //                       ],
+            //                     ),), // paste your sales person column
+            //                     DataCell(Text(e.totalSales.toStringAsFixed(0))),
+            //                   ],
+            //                 ))
+            //                     .toList(),
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+
+            // const SizedBox(height: 16),
+            //
+            // SizedBox(
+            //   height: 300,
+            //   child: Column(
+            //     children: [
+            //
+            //       // ✅ HEADER
+            //       SingleChildScrollView(
+            //         scrollDirection: Axis.horizontal,
+            //         controller: _territoryHorizontal,
+            //         child: DataTable(
+            //           columns: const [
+            //             DataColumn(label: Text("Territory")),
+            //             DataColumn(label: Text("New")),
+            //             DataColumn(label: Text("Converted")),
+            //             DataColumn(label: Text("Leads")),
+            //           ],
+            //           rows: const [],
+            //         ),
+            //       ),
+            //
+            //       // ✅ BODY
+            //       Expanded(
+            //         child: Scrollbar(
+            //           thumbVisibility: true,
+            //           child: SingleChildScrollView(
+            //             controller: _territoryVertical,
+            //             scrollDirection: Axis.vertical,
+            //             child: SingleChildScrollView(
+            //               controller: _territoryHorizontal, // 🔥 SAME controller
+            //               scrollDirection: Axis.horizontal,
+            //               child: DataTable(
+            //                 columns: const [
+            //                   DataColumn(label: Text("")),
+            //                   DataColumn(label: Text("")),
+            //                   DataColumn(label: Text("")),
+            //                   DataColumn(label: Text("")),
+            //                 ],
+            //                 rows: (model.dashboard.territory ?? [])
+            //                     .map((e) => DataRow(
+            //                   cells: [
+            //                     DataCell(
+            //                       Container(
+            //                         alignment: Alignment.center,
+            //                         child: Text(e.territory),
+            //                       ),
+            //                     ),
+            //                     DataCell(
+            //                       Container(
+            //                         alignment: Alignment.center,
+            //                         child: Text(e.newCustomers.toString()),
+            //                       ),
+            //                     ),
+            //                     DataCell(
+            //                       Container(
+            //                         alignment: Alignment.center,
+            //                         child: Text(e.converted.toString()),
+            //                       ),
+            //                     ),
+            //                     DataCell(
+            //                       Container(
+            //                         alignment: Alignment.center,
+            //                         child: Text(e.leads.toString()),
+            //                       ),
+            //                     ),
+            //                   ],
+            //                 ))
+            //                     .toList(),
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            //
+            //
+            //
+            //
+            //
+            //
+            const SizedBox(height: 16),
+
+            _buildSectionCard(
+              title: "Sales Leaderboard",
+              onViewAll: () => Navigator.pushNamed(
+                context,
+                Routes.leaderboardScreen,
+                arguments: model.selectedPeriod,
+              ),
+              child: model.isBusy
+                  ? const Center(child: CircularProgressIndicator())
+                  : (model.dashboard.leaderboard ?? []).isEmpty
+                  ? const Center(child: Text("No data available"))
+                  : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isTablet = constraints.maxWidth > 600;
+
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints:
+                            BoxConstraints(minWidth: constraints.maxWidth),
+                            child: DataTable(
+                              columnSpacing: isTablet ? 40 : 20,
+                              dataRowMinHeight: isTablet ? 70 : 54,
+                              dataRowMaxHeight: isTablet ? 80 : 60,
+                              headingRowHeight: isTablet ? 60 : 48,
+
+                              headingTextStyle: TextStyle(
+                                fontSize: isTablet ? 16 : 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                              dataTextStyle: TextStyle(
+                                fontSize: isTablet ? 14 : 13,
+                                color: Colors.black87,
+                              ),
+                              headingRowColor:
+                              MaterialStateProperty.all(Colors.grey.shade100),
+
+                              columns: const [
+                                DataColumn(label: Text("Trend")),
+                                DataColumn(label: Text("Sales Person")),
+                                DataColumn(label: Text("Sales")),
+                              ],
+
+                              rows: (model.dashboard.leaderboard ?? [])
+                                  .map((e) => DataRow(cells: [
+                                DataCell(
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: e.trend == "up"
+                                          ? Colors.green.withOpacity(0.1)
+                                          : e.trend == "down"
+                                          ? Colors.red.withOpacity(0.1)
+                                          : Colors.grey.withOpacity(0.1),
+                                      borderRadius:
+                                      BorderRadius.circular(6),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          "${e.percentage?.toStringAsFixed(0) ?? 0}%",
+                                          style: TextStyle(
+                                            color: e.trend == "up"
+                                                ? Colors.green
+                                                : e.trend == "down"
+                                                ? Colors.red
+                                                : Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: isTablet ? 14 : 13,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          e.trend == "up"
+                                              ? Icons.arrow_upward
+                                              : e.trend == "down"
+                                              ? Icons.arrow_downward
+                                              : Icons.remove,
+                                          size: isTablet ? 18 : 16,
+                                          color: e.trend == "up"
+                                              ? Colors.green
+                                              : e.trend == "down"
+                                              ? Colors.red
+                                              : Colors.grey,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                DataCell(
+                                  Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        e.salesPerson,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize:
+                                          isTablet ? 15 : 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "O: ${e.orders}   V: ${e.visits}",
+                                        style: TextStyle(
+                                          fontSize:
+                                          isTablet ? 12 : 10,
+                                          color: Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                DataCell(
+                                    Text(e.totalSales.toStringAsFixed(0))),
+                              ]))
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            _buildSectionCard(
+              title: "Territory Summary",
+              onViewAll: () => Navigator.pushNamed(
+                context,
+                Routes.territorySummaryScreen,
+                arguments: model.selectedPeriod,
+              ),
+              child: model.isBusy
+                  ? const Center(child: CircularProgressIndicator())
+                  : (model.dashboard.territory ?? []).isEmpty
+                  ? const Center(child: Text("No data available"))
+                  : LayoutBuilder(
+                builder: (context, constraints) {
+                  final isTablet = constraints.maxWidth > 600;
+
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.35,
+                    child: Scrollbar(
+                      thumbVisibility: true,
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: ConstrainedBox(
+                            constraints:
+                            BoxConstraints(minWidth: constraints.maxWidth),
+                            child: DataTable(
+                              columnSpacing: isTablet ? 40 : 20,
+                              dataRowMinHeight: isTablet ? 60 : 42,
+                              dataRowMaxHeight: isTablet ? 70 : 48,
+                              headingRowHeight: isTablet ? 60 : 48,
+
+                              headingTextStyle: TextStyle(
+                                fontSize: isTablet ? 16 : 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                              dataTextStyle: TextStyle(
+                                fontSize: isTablet ? 14 : 13,
+                                color: Colors.black87,
+                              ),
+                              headingRowColor:
+                              MaterialStateProperty.all(Colors.grey.shade100),
+
+                              columns: const [
+                                DataColumn(label: Text("Territory")),
+                                DataColumn(label: Text("New")),
+                                DataColumn(label: Text("Converted")),
+                                DataColumn(label: Text("Leads")),
+                              ],
+
+                              rows: (model.dashboard.territory ?? [])
+                                  .map((e) => DataRow(cells: [
+                                DataCell(Text(e.territory)),
+                                DataCell(Text(e.newCustomers.toString())),
+                                DataCell(Text(e.converted.toString())),
+                                DataCell(Text(e.leads.toString())),
+                              ]))
+                                  .toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+
             const SizedBox(height: 12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+            SizedBox(
+              height: 100,
+            child: GridView.builder(
+
+
+              scrollDirection: Axis.horizontal,
               itemCount: 6,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 1,
                 crossAxisSpacing: 8,
                 mainAxisSpacing: 8,
-                childAspectRatio: 1.1, // 🔥 gives enough height
+                childAspectRatio: 0.9, // 🔥 gives enough height
               ),
               itemBuilder: (context, index) {
                 final summaries = [
@@ -758,153 +1177,6 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
-
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              title: "Sales Leaderboard",
-              onViewAll: () =>
-                  Navigator.pushNamed(
-                    context,
-                    Routes.leaderboardScreen,
-                    arguments: model.selectedPeriod,
-                  ),
-              child: model.isBusy
-                  ? const Center(child: CircularProgressIndicator())
-                  : (model.dashboard.leaderboard ?? []).isEmpty
-                  ? const Center(child: Text("No data available"))
-                  : SizedBox(
-                height: 220,
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columnSpacing: 12,
-                        dataRowMinHeight: 28,
-                        dataRowMaxHeight: 32,
-                        headingRowHeight: 32,
-                        headingTextStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                        dataTextStyle: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.black87,
-                        ),
-                        headingRowColor:
-                        MaterialStateProperty.all(Colors.grey.shade100),
-
-                        columns: const [
-                          DataColumn(label: Text("Rank")),
-                          DataColumn(label: Text("Sales Person")),
-                          DataColumn(label: Text("Sales")),
-                          DataColumn(label: Text("Orders")),
-                          DataColumn(label: Text("Visits")),
-                        ],
-
-                        rows: (model.dashboard.leaderboard ?? [])
-                            .map((e) => DataRow(
-                          color:
-                          MaterialStateProperty.resolveWith((states) {
-                            if (e.rank == 1) {
-                              return Colors.blue;
-                            }
-                            return null;
-                          }),
-                          cells: [
-                            DataCell(Text(e.rank.toString())),
-                            DataCell(Text(e.salesPerson)),
-                            DataCell(Text(e.totalSales.toStringAsFixed(0))),
-                            DataCell(Text(e.orders.toString())),
-                            DataCell(Text(e.visits.toString())),
-                          ],
-                        ))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            _buildSectionCard(
-              title: "Territory Summary",
-              onViewAll: () =>
-                  Navigator.pushNamed(
-                    context,
-                    Routes.territorySummaryScreen,
-                    arguments: model.selectedPeriod,
-                  ),
-              child: model.isBusy
-                  ? const Center(child: CircularProgressIndicator())
-                  : (model.dashboard.territory ?? []).isEmpty
-                  ? const Center(child: Text("No data available"))
-                  : SizedBox(
-                height: 220,
-                child: Scrollbar(
-                  thumbVisibility: true,
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.vertical,
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columnSpacing: 12,
-                        dataRowMinHeight: 28,
-                        dataRowMaxHeight: 32,
-                        headingRowHeight: 32,
-                        headingTextStyle: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                        dataTextStyle: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.black87,
-                        ),
-                        headingRowColor:
-                        MaterialStateProperty.all(Colors.grey.shade100),
-
-                        columns: const [
-                          DataColumn(label: Text("Rank")),
-                          DataColumn(label: Text("Territory")),
-                          DataColumn(label: Text("Active")),
-                          DataColumn(label: Text("Non Active")),
-                          DataColumn(label: Text("New")),
-                          DataColumn(label: Text("Converted")),
-                          DataColumn(label: Text("Leads")),
-                        ],
-
-                        rows: (model.dashboard.territory ?? [])
-                            .map((e) => DataRow(
-                          color:
-                          MaterialStateProperty.resolveWith((states) {
-                            if (e.rank == 1) {
-                              return Colors.blue;
-                            }
-                            return null;
-                          }),
-                          cells: [
-                            DataCell(Text(e.rank.toString())),
-                            DataCell(Text(e.territory)),
-                            DataCell(Text(e.active.toString())),
-                            DataCell(Text(e.nonActive.toString())),
-                            DataCell(Text(e.newCustomers.toString())),
-                            DataCell(Text(e.converted.toString())),
-                            DataCell(Text(e.leads.toString())),
-                          ],
-                        ))
-                            .toList(),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
             ),
 
 
@@ -1122,7 +1394,7 @@ class MonthSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -1141,7 +1413,7 @@ class MonthSummary extends StatelessWidget {
           Text(
             value.toString(),
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 25,
               fontWeight: FontWeight.bold,
               color: Colors.blue,
             ),
@@ -1153,7 +1425,7 @@ class MonthSummary extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Colors.black,
             ),

@@ -22,6 +22,7 @@ class DashBoard {
   List<TerritorySummary>? territory;
   List<LeaderboardModel>? leaderboard;
 
+
   DashBoard({
     this.inTime,
     this.outTime,

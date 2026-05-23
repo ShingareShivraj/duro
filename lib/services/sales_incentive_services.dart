@@ -40,6 +40,14 @@ class SalesIncentiveServices {
       }
 
     } catch (e) {
+      if (e is DioException) {
+        print("STATUS: ${e.response?.statusCode}");
+        print("ERROR DATA: ${e.response?.data}");
+        print("URL: ${e.requestOptions.path}");
+      } else {
+        print("ERROR: $e");
+      }
+
       Logger().e(e);
       Fluttertoast.showToast(msg: "Error fetching Sales Incentive");
       return null;

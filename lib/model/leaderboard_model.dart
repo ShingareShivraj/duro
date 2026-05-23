@@ -27,6 +27,8 @@ class LeaderboardModel {
   final double totalSales;
   final int orders;
   final int visits;
+  final double? percentage;
+  final String? trend;
 
   LeaderboardModel({
     required this.rank,
@@ -34,6 +36,8 @@ class LeaderboardModel {
     required this.totalSales,
     required this.orders,
     required this.visits,
+    required this.percentage,
+    required this.trend,
   });
 
   factory LeaderboardModel.fromJson(Map<String, dynamic> json) {
@@ -43,6 +47,8 @@ class LeaderboardModel {
       totalSales: (json['total_sales'] ?? 0).toDouble(),
       orders: json['orders'] ?? 0,
       visits: json['visits'] ?? 0,
+      percentage: (json['percentage'] ?? 0).toDouble(),
+      trend: (json['trend'] ?? "neutral").toString().toLowerCase(),
     );
   }
 }
