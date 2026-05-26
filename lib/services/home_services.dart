@@ -25,6 +25,13 @@ class HomeServices {
       );
 
       if (response.statusCode == 200) {
+
+        print("===== FULL DASHBOARD RESPONSE =====");
+        print(response.data);
+
+        print("===== LEADERBOARD DATA =====");
+        print(response.data["data"]["leaderboard"]);
+
         return DashBoard.fromJson(response.data["data"]);
       } else {
         _showToast("Unable to load dashboard data");

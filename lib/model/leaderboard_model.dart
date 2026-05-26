@@ -29,6 +29,14 @@ class LeaderboardModel {
   final int visits;
   final double? percentage;
   final String? trend;
+  final double? currentMonthSales;
+  final double? fullLastMonthSales;
+
+  final double? currentYearSales;
+  final double? fullLastYearSales;
+
+  final double? currentDaySales;
+  final double? fullLastDaySales;
 
   LeaderboardModel({
     required this.rank,
@@ -38,6 +46,14 @@ class LeaderboardModel {
     required this.visits,
     required this.percentage,
     required this.trend,
+    this.currentMonthSales,
+    this.fullLastMonthSales,
+
+    this.currentYearSales,
+    this.fullLastYearSales,
+
+    this.currentDaySales,
+    this.fullLastDaySales,
   });
 
   factory LeaderboardModel.fromJson(Map<String, dynamic> json) {
@@ -49,6 +65,24 @@ class LeaderboardModel {
       visits: json['visits'] ?? 0,
       percentage: (json['percentage'] ?? 0).toDouble(),
       trend: (json['trend'] ?? "neutral").toString().toLowerCase(),
+
+      currentMonthSales:
+      (json['current_month_sales'] ?? 0).toDouble(),
+
+      fullLastMonthSales:
+      (json['full_last_month_sales'] ?? 0).toDouble(),
+
+      currentYearSales:
+      (json['current_year_sales'] ?? 0).toDouble(),
+
+      fullLastYearSales:
+      (json['full_last_year_sales'] ?? 0).toDouble(),
+
+      currentDaySales:
+      (json['current_day_sales'] ?? 0).toDouble(),
+
+      fullLastDaySales:
+      (json['full_last_day_sales'] ?? 0).toDouble(),
     );
   }
 }

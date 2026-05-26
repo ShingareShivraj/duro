@@ -18,6 +18,8 @@ import 'package:slide_to_act/slide_to_act.dart';
 import 'package:stacked/stacked.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocation/widgets/period_filter_chip.dart';
+import 'package:geolocation/model/leaderboard_model.dart';
+import 'package:geolocation/model/territory_summary_model.dart';
 
 import '../../constants.dart';
 import '../../router.router.dart';
@@ -50,6 +52,19 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _ensureTrackingAlive();
   }
+
+  @override
+  void dispose() {
+
+    // _leaderboardHorizontal.dispose();
+    // _leaderboardVertical.dispose();
+    //
+    // _territoryHorizontal.dispose();
+    // _territoryVertical.dispose();
+
+    super.dispose();
+  }
+
 
   Future<void> _ensureTrackingAlive() async {
     final prefs = await SharedPreferences.getInstance();
@@ -905,278 +920,723 @@ class _HomePageState extends State<HomePage> {
             //
             const SizedBox(height: 16),
 
-            _buildSectionCard(
-              title: "Sales Leaderboard",
+            // _buildSectionCard(
+            //   title: "Sales Leaderboard",
+            //   onViewAll: () => Navigator.pushNamed(
+            //     context,
+            //     Routes.leaderboardScreen,
+            //     arguments: model.selectedPeriod,
+            //   ),
+            //   child: model.isBusy
+            //       ? const Center(child: CircularProgressIndicator())
+            //       : (model.dashboard.leaderboard ?? []).isEmpty
+            //       ? const Center(child: Text("No data available"))
+            //       : LayoutBuilder(
+            //     builder: (context, constraints) {
+            //       final isTablet = constraints.maxWidth > 600;
+            //
+            //       return SizedBox(
+            //         height: 320,
+            //         child: Scrollbar(
+            //           thumbVisibility: false,
+            //           child: SingleChildScrollView(
+            //             scrollDirection: Axis.vertical,
+            //             child: SingleChildScrollView(
+            //               scrollDirection: Axis.horizontal,
+            //               child: ConstrainedBox(
+            //                 constraints:
+            //                 BoxConstraints(minWidth: constraints.maxWidth),
+            //                 child: DataTable(
+            //                   columnSpacing: isTablet ? 40 : 20,
+            //                   dataRowMinHeight: isTablet ? 70 : 54,
+            //                   dataRowMaxHeight: isTablet ? 80 : 60,
+            //                   headingRowHeight: isTablet ? 60 : 48,
+            //
+            //                   headingTextStyle: TextStyle(
+            //                     fontSize: isTablet ? 16 : 14,
+            //                     fontWeight: FontWeight.w600,
+            //                     color: Colors.black,
+            //                   ),
+            //                   dataTextStyle: TextStyle(
+            //                     fontSize: isTablet ? 14 : 13,
+            //                     color: Colors.black87,
+            //                   ),
+            //                   headingRowColor:
+            //                   MaterialStateProperty.all(Colors.grey.shade100),
+            //
+            //                   // columns: const [
+            //                   //   DataColumn(label: Text("Trend")),
+            //                   //   DataColumn(label: Text("Sales Person")),
+            //                   //   DataColumn(label: Text("Sales")),
+            //                   // ],
+            //
+            //                   columns: [
+            //                     const DataColumn(label: Text("Rank")),
+            //
+            //                     const DataColumn(label: Text("Sales Person")),
+            //
+            //                     if (model.selectedPeriod == "Daily")
+            //                       const DataColumn(label: Text("Yesterday")),
+            //
+            //                     if (model.selectedPeriod == "Monthly")
+            //                       const DataColumn(label: Text("Last Month")),
+            //
+            //                     if (model.selectedPeriod == "Yearly")
+            //                       const DataColumn(label: Text("Last Year")),
+            //
+            //                     if (model.selectedPeriod == "Daily")
+            //                       const DataColumn(label: Text("Today")),
+            //
+            //                     if (model.selectedPeriod == "Monthly")
+            //                       const DataColumn(label: Text("Current Month")),
+            //
+            //                     if (model.selectedPeriod == "Yearly")
+            //                       const DataColumn(label: Text("Current Year")),
+            //
+            //                     const DataColumn(label: Text("Growth")),
+            //
+            //                     const DataColumn(label: Text("Status")),
+            //                   ],
+            //
+            //                   rows: (model.dashboard.leaderboard ?? [])
+            //                       .map(
+            //                           (e) => DataRow(
+            //
+            //                           color: MaterialStateProperty.resolveWith<Color?>(
+            //                                 (Set<MaterialState> states) {
+            //
+            //                               if ((e.percentage ?? 0) > 25) {
+            //                                 return Colors.green.withOpacity(0.06);
+            //                               }
+            //
+            //                               if ((e.percentage ?? 0) >= 0) {
+            //                                 return Colors.orange.withOpacity(0.05);
+            //                               }
+            //
+            //                               return Colors.red.withOpacity(0.05);
+            //                             },
+            //                           ),
+            //
+            //                           cells: [
+            //                     // DataCell(
+            //                     //   Container(
+            //                     //     padding: const EdgeInsets.symmetric(
+            //                     //         horizontal: 10, vertical: 6),
+            //                     //     decoration: BoxDecoration(
+            //                     //       color: e.trend == "up"
+            //                     //           ? Colors.green.withOpacity(0.1)
+            //                     //           : e.trend == "down"
+            //                     //           ? Colors.red.withOpacity(0.1)
+            //                     //           : Colors.grey.withOpacity(0.1),
+            //                     //       borderRadius:
+            //                     //       BorderRadius.circular(6),
+            //                     //     ),
+            //                     //     child: Row(
+            //                     //       mainAxisSize: MainAxisSize.min,
+            //                     //       children: [
+            //                     //         Text(
+            //                     //           "${e.percentage?.toStringAsFixed(0) ?? 0}%",
+            //                     //           style: TextStyle(
+            //                     //             color: e.trend == "up"
+            //                     //                 ? Colors.green
+            //                     //                 : e.trend == "down"
+            //                     //                 ? Colors.red
+            //                     //                 : Colors.grey,
+            //                     //             fontWeight: FontWeight.bold,
+            //                     //             fontSize: isTablet ? 14 : 13,
+            //                     //           ),
+            //                     //         ),
+            //                     //         const SizedBox(width: 4),
+            //                     //         Icon(
+            //                     //           e.trend == "up"
+            //                     //               ? Icons.arrow_upward
+            //                     //               : e.trend == "down"
+            //                     //               ? Icons.arrow_downward
+            //                     //               : Icons.remove,
+            //                     //           size: isTablet ? 18 : 16,
+            //                     //           color: e.trend == "up"
+            //                     //               ? Colors.green
+            //                     //               : e.trend == "down"
+            //                     //               ? Colors.red
+            //                     //               : Colors.grey,
+            //                     //         ),
+            //                     //       ],
+            //                     //     ),
+            //                     //   ),
+            //                     // ),
+            //
+            //
+            //                     DataCell(
+            //                       Container(
+            //                         width: 34,
+            //                         height: 34,
+            //
+            //                         alignment: Alignment.center,
+            //
+            //                         decoration: BoxDecoration(
+            //                           color: e.rank == 1
+            //                               ? Colors.amber.shade100
+            //                               : e.rank == 2
+            //                               ? Colors.grey.shade300
+            //                               : e.rank == 3
+            //                               ? Colors.orange.shade100
+            //                               : Colors.blue.shade50,
+            //
+            //                           borderRadius: BorderRadius.circular(10),
+            //                         ),
+            //
+            //                         child: Text(
+            //                           e.rank.toString(),
+            //
+            //                           style: TextStyle(
+            //                             fontWeight: FontWeight.bold,
+            //
+            //                             color: e.rank == 1
+            //                                 ? Colors.orange
+            //                                 : e.rank == 2
+            //                                 ? Colors.black87
+            //                                 : e.rank == 3
+            //                                 ? Colors.deepOrange
+            //                                 : Colors.blue,
+            //                           ),
+            //                         ),
+            //                       ),
+            //                     ),
+            //                     DataCell(
+            //                       Row(
+            //                         children: [
+            //
+            //                           CircleAvatar(
+            //                             radius: 18,
+            //
+            //                             backgroundColor: Colors.blue.shade100,
+            //
+            //                             child: Text(
+            //                               e.salesPerson.isNotEmpty
+            //                                   ? e.salesPerson[0].toUpperCase()
+            //                                   : "?",
+            //
+            //                               style: const TextStyle(
+            //                                 fontWeight: FontWeight.bold,
+            //                                 color: Colors.black,
+            //                               ),
+            //                             ),
+            //                           ),
+            //
+            //                           const SizedBox(width: 10),
+            //
+            //                           Column(
+            //                             crossAxisAlignment: CrossAxisAlignment.start,
+            //                             mainAxisAlignment: MainAxisAlignment.center,
+            //
+            //                             children: [
+            //
+            //                               Text(
+            //                                 e.salesPerson,
+            //
+            //                                 style: TextStyle(
+            //                                   fontWeight: FontWeight.w600,
+            //                                   fontSize: isTablet ? 15 : 13,
+            //                                 ),
+            //                               ),
+            //
+            //                               const SizedBox(height: 2),
+            //
+            //                               Text(
+            //                                 "O: ${e.orders}   V: ${e.visits}",
+            //
+            //                                 style: TextStyle(
+            //                                   fontSize: isTablet ? 12 : 10,
+            //                                   color: Colors.black54,
+            //                                 ),
+            //                               ),
+            //                             ],
+            //                           ),
+            //                         ],
+            //                       ),
+            //                     ),
+            //                     // DataCell(
+            //                     //     Text(e.totalSales.toStringAsFixed(0))),
+            //
+            //
+            //
+            //
+            //                     if (model.selectedPeriod == "Daily")
+            //                       DataCell(
+            //                   Text(
+            //                       NumberFormat.compact().format(
+            //                       e.fullLastDaySales ?? 0,
+            //                         ),
+            //                   ),
+            //                       ),
+            //
+            //                     if (model.selectedPeriod == "Monthly")
+            //                       DataCell(
+            //                       Text(
+            //                       NumberFormat.compact().format(
+            //                         e.fullLastMonthSales ?? 0,
+            //                         ),
+            //                       ),
+            //                       ),
+            //
+            //                     if (model.selectedPeriod == "Yearly")
+            //                       DataCell(
+            //                       Text(
+            //                         NumberFormat.compact().format(
+            //                         e.fullLastYearSales ?? 0,
+            //                         ),
+            //                       ),
+            //                       ),
+            //
+            //                     if (model.selectedPeriod == "Daily")
+            //                       DataCell(
+            //                         Text(
+            //                           NumberFormat.compact().format(
+            //                             e.currentDaySales ?? 0,
+            //                           ),
+            //                           style: const TextStyle(
+            //                             fontWeight: FontWeight.bold,
+            //                           ),
+            //                         ),
+            //                       ),
+            //
+            //                     if (model.selectedPeriod == "Monthly")
+            //                       DataCell(
+            //                         Text(
+            //                           NumberFormat.compact().format(
+            //                             e.currentMonthSales ?? 0,
+            //                           ),
+            //                           style: const TextStyle(
+            //                             fontWeight: FontWeight.bold,
+            //                           ),
+            //                         ),
+            //                       ),
+            //
+            //                     if (model.selectedPeriod == "Yearly")
+            //                       DataCell(
+            //                         Text(
+            //                           NumberFormat.compact().format(
+            //                             e.currentYearSales ?? 0,
+            //                           ),
+            //                           style: const TextStyle(
+            //                             fontWeight: FontWeight.bold,
+            //                           ),
+            //                         ),
+            //                       ),
+            //
+            //                     DataCell(
+            //                       Container(
+            //                         padding: const EdgeInsets.symmetric(
+            //                           horizontal: 12,
+            //                           vertical: 8,
+            //                         ),
+            //                         decoration: BoxDecoration(
+            //                           color: (e.percentage ?? 0) > 25
+            //                               ? Colors.green.withOpacity(0.1)
+            //                               : (e.percentage ?? 0) >= 0
+            //                               ? Colors.orange.withOpacity(0.1)
+            //                               : Colors.red.withOpacity(0.1),
+            //
+            //                           borderRadius: BorderRadius.circular(10),
+            //                         ),
+            //
+            //                         child: Row(
+            //                           mainAxisSize: MainAxisSize.min,
+            //
+            //                           children: [
+            //
+            //                             Icon(
+            //                               (e.percentage ?? 0) >= 0
+            //                                   ? Icons.arrow_upward
+            //                                   : Icons.arrow_downward,
+            //
+            //                               size: 16,
+            //
+            //                               color: (e.percentage ?? 0) > 25
+            //                                   ? Colors.green
+            //                                   : (e.percentage ?? 0) >= 0
+            //                                   ? Colors.orange
+            //                                   : Colors.red,
+            //                             ),
+            //
+            //                             const SizedBox(width: 4),
+            //
+            //                             Text(
+            //                               "${e.percentage?.toStringAsFixed(1) ?? 0}%",
+            //
+            //                               style: TextStyle(
+            //                                 fontWeight: FontWeight.bold,
+            //
+            //                                 color: (e.percentage ?? 0) > 25
+            //                                     ? Colors.green
+            //                                     : (e.percentage ?? 0) >= 0
+            //                                     ? Colors.orange
+            //                                     : Colors.red,
+            //                               ),
+            //                             ),
+            //                           ],
+            //                         ),
+            //                       ),
+            //                     ),
+            //                     DataCell(
+            //                       Container(
+            //                         padding: const EdgeInsets.symmetric(
+            //                           horizontal: 10,
+            //                           vertical: 7,
+            //                         ),
+            //                         decoration: BoxDecoration(
+            //                           color: (e.percentage ?? 0) > 25
+            //                               ? Colors.green.withOpacity(0.15)
+            //                               : (e.percentage ?? 0) >= 0
+            //                               ? Colors.orange.withOpacity(0.15)
+            //                               : Colors.red.withOpacity(0.15),
+            //                           borderRadius: BorderRadius.circular(8),
+            //                         ),
+            //                         child: Text(
+            //                           (e.percentage ?? 0) > 25
+            //                               ? "HIGH"
+            //                               : (e.percentage ?? 0) >= 0
+            //                               ? "NEUTRAL"
+            //                               : "LOW",
+            //                           style: TextStyle(
+            //                             fontWeight: FontWeight.bold,
+            //                             color: (e.percentage ?? 0) > 25
+            //                                 ? Colors.green
+            //                                 : (e.percentage ?? 0) >= 0
+            //                                 ? Colors.orange
+            //                                 : Colors.red,
+            //                           ),
+            //                         ),
+            //                       ),
+            //                     ),
+            //                   ]))
+            //                       .toList(),
+            //                 ),
+            //               ),
+            //             ),
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // ),
+
+
+            SalesLeaderboardCard(
+              entries: model.dashboard.leaderboard ?? [],
+              selectedPeriod: model.selectedPeriod,
+              isBusy: model.isBusy,
+
               onViewAll: () => Navigator.pushNamed(
                 context,
                 Routes.leaderboardScreen,
                 arguments: model.selectedPeriod,
               ),
-              child: model.isBusy
-                  ? const Center(child: CircularProgressIndicator())
-                  : (model.dashboard.leaderboard ?? []).isEmpty
-                  ? const Center(child: Text("No data available"))
-                  : LayoutBuilder(
-                builder: (context, constraints) {
-                  final isTablet = constraints.maxWidth > 600;
-
-                  return SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints:
-                            BoxConstraints(minWidth: constraints.maxWidth),
-                            child: DataTable(
-                              columnSpacing: isTablet ? 40 : 20,
-                              dataRowMinHeight: isTablet ? 70 : 54,
-                              dataRowMaxHeight: isTablet ? 80 : 60,
-                              headingRowHeight: isTablet ? 60 : 48,
-
-                              headingTextStyle: TextStyle(
-                                fontSize: isTablet ? 16 : 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                              dataTextStyle: TextStyle(
-                                fontSize: isTablet ? 14 : 13,
-                                color: Colors.black87,
-                              ),
-                              headingRowColor:
-                              MaterialStateProperty.all(Colors.grey.shade100),
-
-                              columns: const [
-                                DataColumn(label: Text("Trend")),
-                                DataColumn(label: Text("Sales Person")),
-                                DataColumn(label: Text("Sales")),
-                              ],
-
-                              rows: (model.dashboard.leaderboard ?? [])
-                                  .map((e) => DataRow(cells: [
-                                DataCell(
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: e.trend == "up"
-                                          ? Colors.green.withOpacity(0.1)
-                                          : e.trend == "down"
-                                          ? Colors.red.withOpacity(0.1)
-                                          : Colors.grey.withOpacity(0.1),
-                                      borderRadius:
-                                      BorderRadius.circular(6),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "${e.percentage?.toStringAsFixed(0) ?? 0}%",
-                                          style: TextStyle(
-                                            color: e.trend == "up"
-                                                ? Colors.green
-                                                : e.trend == "down"
-                                                ? Colors.red
-                                                : Colors.grey,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: isTablet ? 14 : 13,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          e.trend == "up"
-                                              ? Icons.arrow_upward
-                                              : e.trend == "down"
-                                              ? Icons.arrow_downward
-                                              : Icons.remove,
-                                          size: isTablet ? 18 : 16,
-                                          color: e.trend == "up"
-                                              ? Colors.green
-                                              : e.trend == "down"
-                                              ? Colors.red
-                                              : Colors.grey,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                    MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        e.salesPerson,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize:
-                                          isTablet ? 15 : 13,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        "O: ${e.orders}   V: ${e.visits}",
-                                        style: TextStyle(
-                                          fontSize:
-                                          isTablet ? 12 : 10,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                DataCell(
-                                    Text(e.totalSales.toStringAsFixed(0))),
-                              ]))
-                                  .toList(),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
             ),
 
             const SizedBox(height: 16),
 
-            _buildSectionCard(
-              title: "Territory Summary",
+            const SizedBox(height: 16),
+
+            // _buildSectionCard(
+            //   title: "Territory Summary",
+            //
+            //   onViewAll: () => Navigator.pushNamed(
+            //     context,
+            //     Routes.territorySummaryScreen,
+            //     arguments: model.selectedPeriod,
+            //   ),
+            //
+            //   child: model.isBusy
+            //
+            //       ? const Center(
+            //     child: CircularProgressIndicator(),
+            //   )
+            //
+            //       : (model.dashboard.territory ?? []).isEmpty
+            //
+            //       ? const Center(
+            //     child: Text("No data available"),
+            //   )
+            //
+            //   :SizedBox(
+            //
+            //     height: 320,
+            //
+            //     child: Scrollbar(
+            //
+            //       thumbVisibility: true,
+            //
+            //       child: SingleChildScrollView(
+            //
+            //         scrollDirection: Axis.horizontal,
+            //
+            //         child: SingleChildScrollView(
+            //
+            //           scrollDirection: Axis.vertical,
+            //
+            //           child: DataTable(
+            //
+            //             columnSpacing: 32,
+            //
+            //             headingRowHeight: 52,
+            //
+            //             dataRowMinHeight: 60,
+            //
+            //             dataRowMaxHeight: 70,
+            //
+            //             headingRowColor:
+            //             MaterialStateProperty.all(
+            //               Colors.grey.shade100,
+            //             ),
+            //
+            //             columns: const [
+            //
+            //               DataColumn(
+            //                 label: Text(
+            //                   "Territory",
+            //                   style: TextStyle(
+            //                     fontWeight: FontWeight.bold,
+            //                   ),
+            //                 ),
+            //               ),
+            //
+            //               DataColumn(
+            //                 label: Text(
+            //                   "New",
+            //                   style: TextStyle(
+            //                     fontWeight: FontWeight.bold,
+            //                   ),
+            //                 ),
+            //               ),
+            //
+            //               DataColumn(
+            //                 label: Text(
+            //                   "Converted",
+            //                   style: TextStyle(
+            //                     fontWeight: FontWeight.bold,
+            //                   ),
+            //                 ),
+            //               ),
+            //
+            //               DataColumn(
+            //                 label: Text(
+            //                   "Leads",
+            //                   style: TextStyle(
+            //                     fontWeight: FontWeight.bold,
+            //                   ),
+            //                 ),
+            //               ),
+            //             ],
+            //
+            //             rows:
+            //
+            //             (model.dashboard.territory ?? [])
+            //
+            //                 .asMap()
+            //
+            //                 .entries
+            //
+            //                 .map((entry) {
+            //
+            //               final index = entry.key;
+            //
+            //               final e = entry.value;
+            //
+            //               final colors = [
+            //                 Colors.deepPurple,
+            //                 Colors.green,
+            //                 Colors.orange,
+            //                 Colors.blue,
+            //                 Colors.pink,
+            //                 Colors.teal,
+            //               ];
+            //
+            //               final color =
+            //               colors[index % colors.length];
+            //
+            //               return DataRow(
+            //
+            //                 cells: [
+            //
+            //                   DataCell(
+            //
+            //                     Row(
+            //
+            //                       children: [
+            //
+            //                         CircleAvatar(
+            //                           radius: 18,
+            //
+            //                           backgroundColor:
+            //                           color.withOpacity(0.15),
+            //
+            //                           child: Text(
+            //
+            //                             e.territory.isNotEmpty
+            //                                 ? e.territory[0]
+            //                                 .toUpperCase()
+            //                                 : "?",
+            //
+            //                             style: TextStyle(
+            //                               color: color,
+            //                               fontWeight:
+            //                               FontWeight.bold,
+            //                             ),
+            //                           ),
+            //                         ),
+            //
+            //                         const SizedBox(width: 10),
+            //
+            //                         Text(
+            //                           e.territory,
+            //                         ),
+            //                       ],
+            //                     ),
+            //                   ),
+            //
+            //                   DataCell(
+            //
+            //                     Text(
+            //                       e.newCustomers.toString(),
+            //
+            //                       style: const TextStyle(
+            //                         fontWeight:
+            //                         FontWeight.bold,
+            //                         color: Colors.blue,
+            //                       ),
+            //                     ),
+            //                   ),
+            //
+            //                   DataCell(
+            //
+            //                     Text(
+            //                       e.converted.toString(),
+            //
+            //                       style: const TextStyle(
+            //                         fontWeight:
+            //                         FontWeight.bold,
+            //                         color: Colors.green,
+            //                       ),
+            //                     ),
+            //                   ),
+            //
+            //                   DataCell(
+            //
+            //                     Text(
+            //                       e.leads.toString(),
+            //
+            //                       style: const TextStyle(
+            //                         fontWeight:
+            //                         FontWeight.bold,
+            //                         color: Colors.deepPurple,
+            //                       ),
+            //                     ),
+            //                   ),
+            //                 ],
+            //               );
+            //             })
+            //
+            //                 .toList(),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
+            // ),
+
+            TerritorySummaryCard(
+              entries: model.dashboard.territory ?? [],
+              isBusy: model.isBusy,
+
               onViewAll: () => Navigator.pushNamed(
                 context,
                 Routes.territorySummaryScreen,
                 arguments: model.selectedPeriod,
               ),
-              child: model.isBusy
-                  ? const Center(child: CircularProgressIndicator())
-                  : (model.dashboard.territory ?? []).isEmpty
-                  ? const Center(child: Text("No data available"))
-                  : LayoutBuilder(
-                builder: (context, constraints) {
-                  final isTablet = constraints.maxWidth > 600;
+            ),
 
-                  return SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.35,
-                    child: Scrollbar(
-                      thumbVisibility: true,
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: ConstrainedBox(
-                            constraints:
-                            BoxConstraints(minWidth: constraints.maxWidth),
-                            child: DataTable(
-                              columnSpacing: isTablet ? 40 : 20,
-                              dataRowMinHeight: isTablet ? 60 : 42,
-                              dataRowMaxHeight: isTablet ? 70 : 48,
-                              headingRowHeight: isTablet ? 60 : 48,
+            const SizedBox(height: 12),
 
-                              headingTextStyle: TextStyle(
-                                fontSize: isTablet ? 16 : 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
-                              dataTextStyle: TextStyle(
-                                fontSize: isTablet ? 14 : 13,
-                                color: Colors.black87,
-                              ),
-                              headingRowColor:
-                              MaterialStateProperty.all(Colors.grey.shade100),
+            SizedBox(
+              height: 100,
 
-                              columns: const [
-                                DataColumn(label: Text("Territory")),
-                                DataColumn(label: Text("New")),
-                                DataColumn(label: Text("Converted")),
-                                DataColumn(label: Text("Leads")),
-                              ],
+              child: ListView.builder(
 
-                              rows: (model.dashboard.territory ?? [])
-                                  .map((e) => DataRow(cells: [
-                                DataCell(Text(e.territory)),
-                                DataCell(Text(e.newCustomers.toString())),
-                                DataCell(Text(e.converted.toString())),
-                                DataCell(Text(e.leads.toString())),
-                              ]))
-                                  .toList(),
-                            ),
-                          ),
-                        ),
+                scrollDirection: Axis.horizontal,
+
+                itemCount: 6,
+
+                itemBuilder: (context, index) {
+
+                  final summaries = [
+
+                    {
+                      "title": "Visits",
+                      "value": model.dashboard.summary?.visit?.total ?? 0,
+                      "icon": Icons.location_on,
+                      "color": Colors.blue,
+                    },
+
+                    {
+                      "title": "Attendance",
+                      "value": model.dashboard.summary?.attendance?.total ?? 0,
+                      "icon": Icons.how_to_reg,
+                      "color": Colors.green,
+                    },
+
+                    {
+                      "title": "Leaves",
+                      "value": model.dashboard.summary?.leave?.total ?? 0,
+                      "icon": Icons.beach_access,
+                      "color": Colors.orange,
+                    },
+
+                    {
+                      "title": "Orders",
+                      "value": model.dashboard.summary?.orders?.total ?? 0,
+                      "icon": Icons.shopping_cart,
+                      "color": Colors.purple,
+                    },
+
+                    {
+                      "title": "Leads",
+                      "value": model.dashboard.summary?.leads?.total ?? 0,
+                      "icon": Icons.leaderboard,
+                      "color": Colors.redAccent,
+                    },
+
+                    {
+                      "title": "Tours",
+                      "value": model.dashboard.summary?.tours?.total ?? 0,
+                      "icon": Icons.location_on_outlined,
+                      "color": Colors.orangeAccent,
+                    }
+
+                  ];
+
+                  final summary = summaries[index];
+
+                  return Padding(
+
+                    padding: const EdgeInsets.only(right: 8),
+
+                    child: SizedBox(
+
+                      width: 120,
+
+                      child: MonthSummary(
+
+                        title: summary["title"]?.toString() ?? "",
+
+                        value: int.tryParse(
+                          summary["value"].toString(),
+                        ) ?? 0,
                       ),
                     ),
                   );
                 },
               ),
-            ),
-
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 100,
-            child: GridView.builder(
-
-
-              scrollDirection: Axis.horizontal,
-              itemCount: 6,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 1,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-                childAspectRatio: 0.9, // 🔥 gives enough height
-              ),
-              itemBuilder: (context, index) {
-                final summaries = [
-                  {
-                    "title": "Visits",
-                    "value":model.dashboard.summary?.visit?.total ?? 0,
-                    "icon": Icons.location_on,
-                    "color": Colors.blue,
-                  },
-                  {
-                    "title": "Attendance",
-                    "value": model.dashboard.summary?.attendance?.total ?? 0,
-                    "icon": Icons.how_to_reg,
-                    "color": Colors.green,
-                  },
-                  {
-                    "title": "Leaves",
-                    "value": model.dashboard.summary?.leave?.total ?? 0,
-                    "icon": Icons.beach_access,
-                    "color": Colors.orange,
-                  },
-                  {
-                    "title": "Orders",
-                    "value": model.dashboard.summary?.orders?.total ?? 0,
-                    "icon": Icons.shopping_cart,
-                    "color": Colors.purple,
-                  },
-                  {
-                    "title": "Leads",
-                    "value":model.dashboard.summary?.leads?.total ?? 0,
-                    "icon": Icons.leaderboard,
-                    "color": Colors.redAccent,
-                  },
-                  {
-                    "title": "Tours",
-                    "value":model.dashboard.summary?.tours?.total ?? 0,
-                    "icon": Icons.location_on_outlined,
-                    "color": Colors.orangeAccent,
-                  }
-                ];
-
-                final summary = summaries[index];
-
-                return MonthSummary(
-                  title: summary["title"]?.toString() ?? "",
-                  value: int.tryParse(summary["value"].toString()) ?? 0,
-                );
-              },
-            ),
             ),
 
 
@@ -1282,6 +1742,44 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+
+  Widget _buildTerritoryStat({
+    required String title,
+    required String value,
+    required Color color,
+  }) {
+
+    return Column(
+      children: [
+
+        Text(
+          value,
+
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        Text(
+          title,
+
+          style: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
+
+
   Widget weeklySummary(List<SalesPerson> data) {
     final totalVisits =
         data.fold<int>(0, (sum, e) => sum + ((e.visitCount ?? 0) as int));
@@ -1333,6 +1831,9 @@ class _HomePageState extends State<HomePage> {
   }
 
 
+
+
+
   Widget _buildSectionCard({
     required String title,
     required Widget child,
@@ -1379,6 +1880,862 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+
+
+
+}
+
+
+// ─────────────────────────────────────────────
+//  SALES LEADERBOARD CARD
+// ─────────────────────────────────────────────
+
+class SalesLeaderboardCard extends StatelessWidget {
+  final List<LeaderboardModel> entries;
+  final String selectedPeriod; // "Daily" | "Monthly" | "Yearly"
+  final bool isBusy;
+  final VoidCallback? onViewAll;
+
+  const SalesLeaderboardCard({
+    Key? key,
+    required this.entries,
+    required this.selectedPeriod,
+    this.isBusy = false,
+    this.onViewAll,
+  }) : super(key: key);
+
+  // ── header labels ──────────────────────────
+  String get _prevLabel {
+    if (selectedPeriod == 'Daily') return 'Yester\nday';
+    if (selectedPeriod == 'Monthly') return 'Last\nMonth';
+    return 'Last\nYear';
+  }
+
+  String get _currLabel {
+    if (selectedPeriod == 'Daily') return 'Today';
+    if (selectedPeriod == 'Monthly') return 'Curr\nMonth';
+    return 'Curr\nYear';
+  }
+
+  // ── flex widths ────────────────────────────
+  //  Rank | SalesPerson | Prev | Curr | Growth | Status
+  static const _flex = [2, 6, 3, 3, 4, 3];
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      title: 'Sales Leaderboard',
+      onViewAll: onViewAll,
+      child: isBusy
+          ? const _Loader()
+          : entries.isEmpty
+          ? const _Empty()
+          : _tableBody(),
+    );
+  }
+
+  Widget _tableBody() {
+
+    return SizedBox(
+      height: 360,
+
+      child: Scrollbar(
+        thumbVisibility: true,
+
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 1.15,
+
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+
+                child: Column(
+                  children: [
+
+                    _TableHeader(
+                      labels: [
+                        'Rank',
+                        'Sales Person',
+                        _prevLabel,
+                        _currLabel,
+                        'Growth',
+                        'Status',
+                      ],
+                      flex: _flex,
+                    ),
+
+                    ...List.generate(entries.length, (i) {
+
+                      final e = entries[i];
+                      final isLast = i == entries.length - 1;
+
+                      double prev = 0, curr = 0;
+
+                      if (selectedPeriod == 'Daily') {
+                        prev = e.fullLastDaySales ?? 0;
+                        curr = e.currentDaySales ?? 0;
+                      } else if (selectedPeriod == 'Monthly') {
+                        prev = e.fullLastMonthSales ?? 0;
+                        curr = e.currentMonthSales ?? 0;
+                      } else {
+                        prev = e.fullLastYearSales ?? 0;
+                        curr = e.currentYearSales ?? 0;
+                      }
+
+                      return _LeaderboardRow(
+                        entry: e,
+                        prevSales: prev,
+                        currSales: curr,
+                        isLast: isLast,
+                        flex: _flex,
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  TERRITORY SUMMARY CARD
+// ─────────────────────────────────────────────
+
+class TerritorySummaryCard extends StatelessWidget {
+  final List<TerritorySummary> entries;
+  final bool isBusy;
+  final VoidCallback? onViewAll;
+
+  const TerritorySummaryCard({
+    Key? key,
+    required this.entries,
+    this.isBusy = false,
+    this.onViewAll,
+  }) : super(key: key);
+
+  static const List<Color> _colors = [
+    Color(0xFF7C3AED), // purple
+    Color(0xFF059669), // green
+    Color(0xFFD97706), // orange
+    Color(0xFF2563EB), // blue
+    Color(0xFFDB2777), // pink
+    Color(0xFF0D9488), // teal
+  ];
+
+  // flex: Territory | New | Converted | Leads
+  static const _flex = [5, 2, 3, 2];
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionCard(
+      title: 'Territory Summary',
+      onViewAll: onViewAll,
+      child: isBusy
+          ? const _Loader()
+          : entries.isEmpty
+          ? const _Empty()
+          : _tableBody(),
+    );
+  }
+
+  Widget _tableBody() {
+
+    return SizedBox(
+      height: 320,
+
+      child: Scrollbar(
+        thumbVisibility: true,
+
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+
+          child: SizedBox(
+            width: MediaQuery.of(context).size.width * 1.08,
+
+            child: SingleChildScrollView(
+              scrollDirection: Axis.vertical,
+
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+
+                child: Column(
+                  children: [
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 13,
+                      ),
+
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Color(0xFF6366F1),
+                            Color(0xFF8B5CF6),
+                          ],
+                        ),
+                      ),
+
+                      child: Row(
+                        children: [
+                          _gradientHeader('Territory', flex: _flex[0]),
+                          _gradientHeader('New', flex: _flex[1], center: true),
+                          _gradientHeader('Converted', flex: _flex[2], center: true),
+                          _gradientHeader('Leads', flex: _flex[3], center: true),
+                        ],
+                      ),
+                    ),
+
+                    ...List.generate(entries.length, (i) {
+
+                      final e = entries[i];
+                      final isLast = i == entries.length - 1;
+                      final color = _colors[i % _colors.length];
+
+                      return _TerritoryRow(
+                        entry: e,
+                        color: color,
+                        isLast: isLast,
+                        flex: _flex,
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _gradientHeader(String text,
+      {required int flex, bool center = false}) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        textAlign: center ? TextAlign.center : TextAlign.start,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: 0.2,
+        ),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE — SHARED SECTION CARD
+// ─────────────────────────────────────────────
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final VoidCallback? onViewAll;
+  final Widget child;
+
+  const _SectionCard({
+    required this.title,
+    required this.child,
+    this.onViewAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 18,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding:
+            const EdgeInsets.fromLTRB(16, 16, 16, 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF1A1A2E),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                if (onViewAll != null)
+                  GestureDetector(
+                    onTap: onViewAll,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF6366F1).withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      // child: const Text(
+                      //   'View All',
+                      //   style: TextStyle(
+                      //     fontSize: 11,
+                      //     fontWeight: FontWeight.w700,
+                      //     color: Color(0xFF6366F1),
+                      //   ),
+                      // ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE — TABLE HEADER (leaderboard)
+// ─────────────────────────────────────────────
+
+class _TableHeader extends StatelessWidget {
+  final List<String> labels;
+  final List<int> flex;
+
+  const _TableHeader({required this.labels, required this.flex});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      color: const Color(0xFFF8F9FA),
+      child: Row(
+        children: List.generate(labels.length, (i) {
+          final isFirst = i == 0;
+          return Expanded(
+            flex: flex[i],
+            child: Text(
+              labels[i],
+              textAlign:
+              isFirst ? TextAlign.center : TextAlign.center,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                color: Colors.grey.shade500,
+                height: 1.35,
+                letterSpacing: 0.2,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE — LEADERBOARD ROW
+// ─────────────────────────────────────────────
+
+class _LeaderboardRow extends StatelessWidget {
+  final LeaderboardModel entry;
+  final double prevSales;
+  final double currSales;
+  final bool isLast;
+  final List<int> flex;
+
+  const _LeaderboardRow({
+    required this.entry,
+    required this.prevSales,
+    required this.currSales,
+    required this.isLast,
+    required this.flex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = entry.percentage ?? 0;
+    final Color rowBg;
+    if (pct > 25) {
+      rowBg = const Color(0xFFF0FDF4); // green tint
+    } else if (pct >= 0) {
+      rowBg = const Color(0xFFFFFBEB); // yellow tint
+    } else {
+      rowBg = const Color(0xFFFFF1F2); // red tint
+    }
+
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: rowBg,
+        border: isLast
+            ? null
+            : const Border(
+            bottom: BorderSide(color: Color(0xFFF0F0F0))),
+      ),
+      child: Row(
+        children: [
+          // Rank Badge
+          Expanded(
+            flex: flex[0],
+            child: Center(child: _RankBadge(rank: entry.rank ?? 0)),
+          ),
+          // Sales Person
+          Expanded(
+            flex: flex[1],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                Text(
+                  entry.salesPerson,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E),
+                    height: 1.2,
+                  ),
+                ),
+
+                // const SizedBox(height: 2),
+
+                // Text(
+                //   'O:${entry.orders}  V:${entry.visits}',
+                //   style: const TextStyle(
+                //     fontSize: 9,
+                //     color: Color(0xFFAAAAAA),
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+              ],
+            ),
+          ),
+          // Previous
+          Expanded(
+            flex: flex[2],
+            child: Text(
+              NumberFormat.compact().format(prevSales),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Color(0xFF888888),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          // Current
+          Expanded(
+            flex: flex[3],
+            child: Text(
+              NumberFormat.compact().format(currSales),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+          ),
+          // Growth
+          Expanded(
+            flex: flex[4],
+            child: Center(child: _GrowthBadge(percentage: pct)),
+          ),
+          // Status
+          Expanded(
+            flex: flex[5],
+            child: Center(child: _StatusDot(percentage: pct)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE — TERRITORY ROW
+// ─────────────────────────────────────────────
+
+class _TerritoryRow extends StatelessWidget {
+  final TerritorySummary entry;
+  final Color color;
+  final bool isLast;
+  final List<int> flex;
+
+  const _TerritoryRow({
+    required this.entry,
+    required this.color,
+    required this.isLast,
+    required this.flex,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: isLast
+            ? null
+            : const Border(
+            bottom: BorderSide(color: Color(0xFFF5F5F5))),
+      ),
+      child: Row(
+        children: [
+          // Territory
+          Expanded(
+            flex: flex[0],
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 17,
+                  backgroundColor: color.withOpacity(0.14),
+                  child: Text(
+                    entry.territory.isNotEmpty
+                        ? entry.territory[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    entry.territory,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // New
+          Expanded(
+            flex: flex[1],
+            child: Text(
+              entry.newCustomers.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+          ),
+          // Converted
+          Expanded(
+            flex: flex[2],
+            child: Text(
+              entry.converted.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF059669),
+              ),
+            ),
+          ),
+          // Leads
+          Expanded(
+            flex: flex[3],
+            child: Text(
+              entry.leads.toString(),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF7C3AED),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+//  PRIVATE — MICRO WIDGETS
+// ─────────────────────────────────────────────
+
+class _RankBadge extends StatelessWidget {
+  final int rank;
+  const _RankBadge({required this.rank});
+
+  @override
+  Widget build(BuildContext context) {
+    // Medal for top 3
+    if (rank == 1) {
+      return _medalBadge(
+        rank: 1,
+        bg: const Color(0xFFFEF3C7),
+        border: const Color(0xFFF59E0B),
+        text: const Color(0xFFB45309),
+      );
+    }
+    if (rank == 2) {
+      return _medalBadge(
+        rank: 2,
+        bg: const Color(0xFFF3F4F6),
+        border: const Color(0xFF9CA3AF),
+        text: const Color(0xFF6B7280),
+      );
+    }
+    if (rank == 3) {
+      return _medalBadge(
+        rank: 3,
+        bg: const Color(0xFFFEE2E2),
+        border: const Color(0xFFF97316),
+        text: const Color(0xFFEA580C),
+      );
+    }
+
+    // Others
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        rank.toString(),
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF3B82F6),
+        ),
+      ),
+    );
+  }
+
+  Widget _medalBadge({
+    required int rank,
+    required Color bg,
+    required Color border,
+    required Color text,
+  }) {
+    return Container(
+      width: 30,
+      height: 30,
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: border.withOpacity(0.5), width: 1.5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        rank.toString(),
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w900,
+          color: text,
+        ),
+      ),
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  final String name;
+  const _Avatar({required this.name});
+
+  // cycle through soft pastel backgrounds
+  static const List<Color> _bgs = [
+    Color(0xFFDBEAFE),
+    Color(0xFFD1FAE5),
+    Color(0xFFFEE2E2),
+    Color(0xFFF3E8FF),
+    Color(0xFFFFEDD5),
+    Color(0xFFCCFBF1),
+  ];
+  static const List<Color> _fgs = [
+    Color(0xFF1D4ED8),
+    Color(0xFF065F46),
+    Color(0xFF991B1B),
+    Color(0xFF6D28D9),
+    Color(0xFFB45309),
+    Color(0xFF0F766E),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final idx = name.isNotEmpty ? name.codeUnitAt(0) % _bgs.length : 0;
+    return CircleAvatar(
+      radius: 15,
+      backgroundColor: _bgs[idx],
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w800,
+          color: _fgs[idx],
+        ),
+      ),
+    );
+  }
+}
+
+class _GrowthBadge extends StatelessWidget {
+  final double percentage;
+  const _GrowthBadge({required this.percentage});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color;
+    if (percentage > 25) {
+      color = const Color(0xFF059669);
+    } else if (percentage >= 0) {
+      color = const Color(0xFFD97706);
+    } else {
+      color = const Color(0xFFDC2626);
+    }
+
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              percentage >= 0
+                  ? Icons.arrow_upward_rounded
+                  : Icons.arrow_downward_rounded,
+              size: 10,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '${percentage.toStringAsFixed(1)}%',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  final double percentage;
+  const _StatusDot({required this.percentage});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color;
+    final String label;
+    if (percentage > 25) {
+      color = const Color(0xFF059669);
+      label = 'H';
+    } else if (percentage >= 0) {
+      color = const Color(0xFFD97706);
+      label = 'N';
+    } else {
+      color = const Color(0xFFDC2626);
+      label = 'L';
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Loader extends StatelessWidget {
+  const _Loader();
+  @override
+  Widget build(BuildContext context) =>
+      const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+}
+
+class _Empty extends StatelessWidget {
+  const _Empty();
+  @override
+  Widget build(BuildContext context) =>
+      const Padding(
+        padding: EdgeInsets.all(32),
+        child: Center(
+          child: Text(
+            'No data available',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
 }
 
 class MonthSummary extends StatelessWidget {
