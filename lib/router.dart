@@ -79,19 +79,9 @@ import 'screens/retailer_registration/add_retailer/add_retailer_screen.dart';
     MaterialRoute(page: ListSelfOrderScreen),
     MaterialRoute(page: CreateSelfOrderScreen),
     MaterialRoute(page: SalesIncentiveScreen),
-    MaterialRoute(
-      page: LeaderboardScreen,
-      arguments: [
-        Argument('period', type: String, isRequired: false),
-      ],
-    ),
+    MaterialRoute(page: LeaderboardScreen),
 
-    MaterialRoute(
-      page: TerritorySummaryScreen,
-      arguments: [
-        Argument('period', type: String, isRequired: false),
-      ],
-    ),
+    MaterialRoute(page: TerritorySummaryScreen),
 
 
     // DetailedFarmerScreen

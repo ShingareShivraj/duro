@@ -1907,17 +1907,38 @@ class SalesLeaderboardCard extends StatelessWidget {
 
   // ── header labels ──────────────────────────
   String get _prevLabel {
-    if (selectedPeriod == 'Daily') return 'Yester\nday';
-    if (selectedPeriod == 'Monthly') return 'Last\nMonth';
-    return 'Last\nYear';
+
+    if (entries.isEmpty) return 'Previous';
+
+    final e = entries.first;
+
+    if (selectedPeriod == 'Daily') {
+      return e.sales.daily.previousLabel;
+    }
+
+    if (selectedPeriod == 'Monthly') {
+      return e.sales.monthly.previousLabel;
+    }
+
+    return e.sales.fiscal.previousLabel;
   }
 
   String get _currLabel {
-    if (selectedPeriod == 'Daily') return 'Today';
-    if (selectedPeriod == 'Monthly') return 'Curr\nMonth';
-    return 'Curr\nYear';
-  }
 
+    if (entries.isEmpty) return 'Current';
+
+    final e = entries.first;
+
+    if (selectedPeriod == 'Daily') {
+      return e.sales.daily.currentLabel;
+    }
+
+    if (selectedPeriod == 'Monthly') {
+      return e.sales.monthly.currentLabel;
+    }
+
+    return e.sales.fiscal.currentLabel;
+  }
   // ── flex widths ────────────────────────────
   //  Rank | SalesPerson | Prev | Curr | Growth | Status
   static const _flex = [2, 6, 3, 3, 4, 3];
@@ -1931,11 +1952,11 @@ class SalesLeaderboardCard extends StatelessWidget {
           ? const _Loader()
           : entries.isEmpty
           ? const _Empty()
-          : _tableBody(),
+          : _tableBody(context),
     );
   }
 
-  Widget _tableBody() {
+  Widget _tableBody(BuildContext context) {
 
     return SizedBox(
       height: 360,
@@ -1981,16 +2002,20 @@ class SalesLeaderboardCard extends StatelessWidget {
                       double prev = 0, curr = 0;
 
                       if (selectedPeriod == 'Daily') {
-                        prev = e.fullLastDaySales ?? 0;
-                        curr = e.currentDaySales ?? 0;
-                      } else if (selectedPeriod == 'Monthly') {
-                        prev = e.fullLastMonthSales ?? 0;
-                        curr = e.currentMonthSales ?? 0;
-                      } else {
-                        prev = e.fullLastYearSales ?? 0;
-                        curr = e.currentYearSales ?? 0;
-                      }
 
+                        prev = e.sales.daily.previous;
+                        curr = e.sales.daily.current;
+
+                      } else if (selectedPeriod == 'Monthly') {
+
+                        prev = e.sales.monthly.previous;
+                        curr = e.sales.monthly.current;
+
+                      } else {
+
+                        prev = e.sales.fiscal.previous;
+                        curr = e.sales.fiscal.current;
+                      }
                       return _LeaderboardRow(
                         entry: e,
                         prevSales: prev,
@@ -2047,11 +2072,11 @@ class TerritorySummaryCard extends StatelessWidget {
           ? const _Loader()
           : entries.isEmpty
           ? const _Empty()
-          : _tableBody(),
+          : _tableBody(context),
     );
   }
 
-  Widget _tableBody() {
+  Widget _tableBody(BuildContext context) {
 
     return SizedBox(
       height: 320,
@@ -2063,7 +2088,7 @@ class TerritorySummaryCard extends StatelessWidget {
           scrollDirection: Axis.horizontal,
 
           child: SizedBox(
-            width: MediaQuery.of(context).size.width * 1.08,
+            width: MediaQuery.of(context).size.width * 1.00,
 
             child: SingleChildScrollView(
               scrollDirection: Axis.vertical,
@@ -2249,7 +2274,7 @@ class _TableHeader extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.w900,
-                color: Colors.grey.shade500,
+                color: Colors.black,
                 height: 1.35,
                 letterSpacing: 0.2,
               ),
@@ -2282,7 +2307,7 @@ class _LeaderboardRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct = entry.percentage ?? 0;
+    final pct = entry.comparison.percentage;
     final Color rowBg;
     if (pct > 25) {
       rowBg = const Color(0xFFF0FDF4); // green tint
@@ -2307,7 +2332,7 @@ class _LeaderboardRow extends StatelessWidget {
           // Rank Badge
           Expanded(
             flex: flex[0],
-            child: Center(child: _RankBadge(rank: entry.rank ?? 0)),
+            child: Center(child: _RankBadge(rank: entry.rank)),
           ),
           // Sales Person
           Expanded(
@@ -2420,21 +2445,21 @@ class _TerritoryRow extends StatelessWidget {
             flex: flex[0],
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 17,
-                  backgroundColor: color.withOpacity(0.14),
-                  child: Text(
-                    entry.territory.isNotEmpty
-                        ? entry.territory[0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
+                // CircleAvatar(
+                //   radius: 17,
+                //   backgroundColor: color.withOpacity(0.14),
+                //   child: Text(
+                //     entry.territory.isNotEmpty
+                //         ? entry.territory[0].toUpperCase()
+                //         : '?',
+                //     style: TextStyle(
+                //       color: color,
+                //       fontWeight: FontWeight.w800,
+                //       fontSize: 14,
+                //     ),
+                //   ),
+                // ),
+                // const SizedBox(width: 10),
                 Flexible(
                   child: Text(
                     entry.territory,
@@ -2634,7 +2659,7 @@ class _GrowthBadge extends StatelessWidget {
 
     return Container(
       padding:
-      const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(20),
@@ -2682,13 +2707,13 @@ class _StatusDot extends StatelessWidget {
     final String label;
     if (percentage > 25) {
       color = const Color(0xFF059669);
-      label = 'H';
+      label = 'High';
     } else if (percentage >= 0) {
       color = const Color(0xFFD97706);
-      label = 'N';
+      label = 'Neutral';
     } else {
       color = const Color(0xFFDC2626);
-      label = 'L';
+      label = 'Low';
     }
 
     return Row(
