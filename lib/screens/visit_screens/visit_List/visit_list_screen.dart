@@ -48,18 +48,48 @@ class VisitScreen extends StatelessWidget {
                   ),
           ),
         ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () async {
-            await Navigator.pushNamed(
-              context,
-              Routes.addVisitScreen,
-              arguments: AddVisitScreenArguments(VisitId: ""),
-            );
-            await model.refresh();
-          },
-          icon: const Icon(Icons.add),
-          label: const Text('Create Visit'),
-        ),
+          floatingActionButton:
+          FloatingActionButton.extended(
+
+            onPressed: () async {
+
+              if (model.activeVisit?.status == "In Progress") {
+
+                await Navigator.pushNamed(
+                  context,
+                  Routes.addVisitScreen,
+                  arguments: AddVisitScreenArguments(
+                    VisitId: model.activeVisit!.name ?? "",
+                  ),
+                );
+
+              } else {
+
+                await Navigator.pushNamed(
+                  context,
+                  Routes.addVisitScreen,
+                  arguments: AddVisitScreenArguments(
+                    VisitId: "",
+                  ),
+                );
+
+              }
+
+              await model.refresh();
+            },
+
+            icon: Icon(
+              model.activeVisit?.status == "In Progress"
+                  ? Icons.play_arrow
+                  : Icons.add,
+            ),
+
+            label: Text(
+              model.activeVisit?.status == "In Progress"
+                  ? "Resume Visit"
+                  : "Create Visit",
+            ),
+          ),
       ),
     );
   }
@@ -487,15 +517,23 @@ String _formatTime(BuildContext context, String dateTime) {
 }
 
 String _getStatusText(AddVisitModel visit) {
-  if (visit.visitInTime != null && visit.visitOutTime != null)
-    return "COMPLETED";
-  if (visit.visitInTime != null) return "IN PROGRESS";
-  return "PENDING";
+  return (visit.status ?? "Unknown").toUpperCase();
 }
 
 Color _getStatusColor(AddVisitModel visit, ColorScheme cs) {
-  if (visit.visitInTime != null && visit.visitOutTime != null)
-    return Colors.green;
-  if (visit.visitInTime != null) return Colors.orange;
-  return cs.onSurfaceVariant;
+
+  switch (visit.status) {
+
+    case "Completed":
+      return Colors.green;
+
+    case "In Progress":
+      return Colors.orange;
+
+    case "Cancelled":
+      return Colors.red;
+
+    default:
+      return cs.onSurfaceVariant;
+  }
 }

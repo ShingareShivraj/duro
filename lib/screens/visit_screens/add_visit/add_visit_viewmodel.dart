@@ -29,6 +29,7 @@ class AddVisitViewModel extends BaseViewModel {
   bool isEdit = false;
   bool isVisitInCompleted = false;
   bool isVisitOutCompleted = false;
+  String? activeVisitId;
 
   File? outImage;
   final ImagePicker _picker = ImagePicker();
@@ -94,6 +95,23 @@ class AddVisitViewModel extends BaseViewModel {
     try {
       allParties = await AddVisitServices().fetchCustomer();
 
+      final activeVisit =
+      await AddVisitServices().getActiveVisit();
+
+      if (activeVisit != null &&
+          activeVisit.status == "In Progress") {
+
+        visitData = activeVisit;
+
+        activeVisitId = activeVisit.name;
+
+        isVisitInCompleted = true;
+
+        descriptionController.text =
+            activeVisit.description ?? "";
+
+        notifyListeners();
+      }
       if (visitId.isNotEmpty) {
         isEdit = true;
         visitData =
@@ -317,11 +335,25 @@ class AddVisitViewModel extends BaseViewModel {
       ..visitInLongitude = lng.toString()
       ..visitInAddress = null; // skipped
 
-    isVisitInCompleted = true;
-    currentStep = 1;
+    final response =
+    await AddVisitServices().addVisit(
+      visitData,
+      null,
+    );
 
-    Fluttertoast.showToast(msg: "Visit In Started. ✓");
-    notifyListeners();
+    if (response.success) {
+
+      activeVisitId = response.visitId;
+
+      isVisitInCompleted = true;
+      currentStep = 1;
+
+      Fluttertoast.showToast(
+        msg: "Visit Started Successfully",
+      );
+
+      notifyListeners();
+    }
   }
 
   Future<void> _saveVisitOutUpload(
@@ -342,6 +374,8 @@ class AddVisitViewModel extends BaseViewModel {
     isVisitOutCompleted = true;
     notifyListeners();
 
+    visitData.name = activeVisitId;
+
     final res = await AddVisitServices().addVisit(
       visitData,
       outImage,
@@ -352,7 +386,14 @@ class AddVisitViewModel extends BaseViewModel {
       },
     ).timeout(const Duration(seconds: 30));
 
-    if (res && context.mounted) Navigator.pop(context);
+    if (res.success) {
+
+      activeVisitId = null;
+
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override

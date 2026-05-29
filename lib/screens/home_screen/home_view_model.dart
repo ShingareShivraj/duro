@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter/material.dart';
 
 import '../../constants.dart';
 import '../../model/dashboard.dart';
@@ -46,7 +47,7 @@ class HomeViewModel extends BaseViewModel {
 
   String greeting = "";
   String selectedPeriod = "Monthly";
-
+  DateTimeRange? selectedRange;
   // ───────────────────────────────────────── Territory ─────────────────────────────────────────
   String? selectedTerritory;
   List<String> territoryList = [];
@@ -127,20 +128,54 @@ class HomeViewModel extends BaseViewModel {
   }
 
 
-  Future<void> changePeriod(String period) async {
+  Future<void> changePeriod(
+      String period, {
+        DateTimeRange? range,
+      }) async {
+
     selectedPeriod = period;
+
+    if (range != null) {
+      selectedRange = range;
+    }
+
     setBusy(true);
 
-    final data = await _service.dashboard(period);
+    final data = await _service.dashboard(
+      period,
+      range: selectedRange,
+    );
 
     if (data != null) {
       _dashboard = data;
-
-      // 🔥 update new data
       notifyListeners();
     }
 
     setBusy(false);
+  }
+
+
+  Future<void> openCustomRangePicker(
+      BuildContext context,
+      ) async {
+
+    final result = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDateRange: selectedRange,
+      saveText: "Apply",
+    );
+
+    if (result != null) {
+
+      selectedRange = result;
+
+      await changePeriod(
+        "Custom Range",
+        range: result,
+      );
+    }
   }
 
   bool _isAuthError(Object error) {
@@ -226,7 +261,10 @@ class HomeViewModel extends BaseViewModel {
 
   Future<void> onRefresh() async {
     try {
-      final dashboard = await _service.dashboard(selectedPeriod);
+      final dashboard = await _service.dashboard(
+        selectedPeriod,
+        range: selectedRange,
+      );
       if (dashboard == null) return;
 
       _dashboard = dashboard;

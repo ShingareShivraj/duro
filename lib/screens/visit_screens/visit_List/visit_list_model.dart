@@ -4,6 +4,7 @@ import 'package:geolocation/services/list_visit_service.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
 
+import '../../../services/add_visit_services.dart';
 import '../../../router.router.dart';
 
 class VisitViewModel extends BaseViewModel {
@@ -17,6 +18,7 @@ class VisitViewModel extends BaseViewModel {
   List<AddVisitModel> _visitList = const [];
   List<AddVisitModel> get visitList => _visitList;
   List<AddVisitModel> _allVisitList = [];
+  AddVisitModel? activeVisit;
 
   // Date range
   DateTime? _fromDate;
@@ -64,6 +66,11 @@ class VisitViewModel extends BaseViewModel {
       useCache: true,
       showBusy: true,
     );
+
+    activeVisit =
+    await AddVisitServices().getActiveVisit();
+
+    notifyListeners();
   }
 
   Future<void> refresh() async {
@@ -75,6 +82,11 @@ class VisitViewModel extends BaseViewModel {
       useCache: false,
       showBusy: true,
     );
+
+    activeVisit =
+    await AddVisitServices().getActiveVisit();
+
+    notifyListeners();
   }
 
   /// Call this when user selects From Date
@@ -141,11 +153,30 @@ class VisitViewModel extends BaseViewModel {
         from: _fromDate!, to: _toDate!, useCache: true, showBusy: true);
   }
 
-  void onRowClick(BuildContext context, AddVisitModel visit) {
+  void onRowClick(
+      BuildContext context,
+      AddVisitModel visit,
+      ) {
+
+    if (visit.status == "In Progress") {
+
+      Navigator.pushNamed(
+        context,
+        Routes.addVisitScreen,
+        arguments: AddVisitScreenArguments(
+          VisitId: visit.name ?? "",
+        ),
+      );
+
+      return;
+    }
+
     Navigator.pushNamed(
       context,
       Routes.updateVisitScreen,
-      arguments: UpdateVisitScreenArguments(updateId: visit.name ?? ""),
+      arguments: UpdateVisitScreenArguments(
+        updateId: visit.name ?? "",
+      ),
     );
   }
 

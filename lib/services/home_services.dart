@@ -7,6 +7,8 @@ import 'package:geolocation/model/attendance_dashboard_model.dart';
 import 'package:geolocation/model/emp_data.dart';
 import 'package:geolocation/model/leave_model.dart';
 import 'package:logger/logger.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../constants.dart';
 import '../model/dashboard.dart';
@@ -15,10 +17,24 @@ class HomeServices {
   final Dio _dio = Dio();
   final Logger _logger = Logger();
 
-  Future<DashBoard?> dashboard(String period) async {
+  Future<DashBoard?> dashboard(
+      String period, {
+        DateTimeRange? range,
+      }) async {
     try {
-      final url =
+      String url =
           '${await geturl()}/api/method/mobile.mobile_env.app.get_dashboard?period=$period';
+
+      if (range != null) {
+
+        final from =
+        DateFormat('yyyy-MM-dd').format(range.start);
+
+        final to =
+        DateFormat('yyyy-MM-dd').format(range.end);
+
+        url += '&from_date=$from&to_date=$to';
+      }
       final response = await _dio.get(
         url,
         options: Options(headers: {'Authorization': await getTocken()}),

@@ -27,7 +27,7 @@ class AddVisitServices {
   Future<String> _getToken() async => await getTocken();
 
   // =================== ADD VISIT ===================
-  Future<bool> addVisit(
+  Future<VisitResponse> addVisit(
     AddVisitModel visit,
     File? image, {
     void Function(int sent, int total)? onProgress,
@@ -74,11 +74,14 @@ class AddVisitServices {
             textColor: const Color(0xFFFFFFFF),
             backgroundColor: const Color(0xFFBA1A1A),
           );
-          return false;
+          return VisitResponse(success: false);
         }
 
         Fluttertoast.showToast(msg: "Visit added successfully");
-        return true;
+        return VisitResponse(
+          success: true,
+          visitId: data["data"]?["name"],
+        );
       }
 
       Fluttertoast.showToast(
@@ -87,7 +90,7 @@ class AddVisitServices {
         textColor: const Color(0xFFFFFFFF),
         backgroundColor: const Color(0xFFBA1A1A),
       );
-      return false;
+      return VisitResponse(success: false);
     } on TimeoutException {
       Fluttertoast.showToast(
         msg: "Request timed out. Please try again.",
@@ -95,7 +98,7 @@ class AddVisitServices {
         textColor: const Color(0xFFFFFFFF),
         backgroundColor: const Color(0xFFBA1A1A),
       );
-      return false;
+      return VisitResponse(success: false);
     } on DioException catch (e) {
       final msg = _extractFrappeError(e) ?? e.message ?? "Something went wrong";
 
@@ -107,7 +110,7 @@ class AddVisitServices {
       );
 
       Logger().e(e.response?.data ?? e);
-      return false;
+      return VisitResponse(success: false);
     } catch (e) {
       Fluttertoast.showToast(
         msg: "Something went wrong",
@@ -116,8 +119,32 @@ class AddVisitServices {
         backgroundColor: const Color(0xFFBA1A1A),
       );
       Logger().e(e);
-      return false;
+      return VisitResponse(success: false);
     }
+  }
+
+  Future<AddVisitModel?> getActiveVisit() async {
+    final baseUrl = await _getBaseUrl();
+
+    try {
+      final response = await _dio.get(
+        '$baseUrl/api/method/mobile.mobile_env.visit.get_active_visit',
+        options: Options(
+          headers: {'Authorization': await _getToken()},
+        ),
+      );
+
+      if (response.statusCode == 200 &&
+          response.data["data"] != null) {
+        return AddVisitModel.fromJson(
+          response.data["data"],
+        );
+      }
+    } catch (e) {
+      Logger().e(e);
+    }
+
+    return null;
   }
 
   String? _extractFrappeError(DioException e) {
@@ -209,4 +236,14 @@ class AddVisitServices {
 
     return [];
   }
+}
+
+class VisitResponse {
+  final bool success;
+  final String? visitId;
+
+  VisitResponse({
+    required this.success,
+    this.visitId,
+  });
 }

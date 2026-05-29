@@ -689,35 +689,145 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 24),
 
             /// ===== MONTH SUMMARY =====
-            Text(
-              "${model.selectedPeriod} Summary",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            // Text(
+            //   "${model.selectedPeriod} Summary",
+            //   style: const TextStyle(
+            //     fontSize: 18,
+            //     fontWeight: FontWeight.bold,
+            //   ),
+            // ),
+
+            Container(
+              height: 52,
+              width: 220,
+
+              decoration: BoxDecoration(
+                color: Colors.white,
+
+                borderRadius: BorderRadius.circular(18),
+
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+
+                border: Border.all(
+                  color: const Color(0xFFE5E7EB),
+                  width: 1,
+                ),
+              ),
+
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                ),
+
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+
+                    value: model.selectedPeriod,
+
+                    isExpanded: true,
+
+                    borderRadius: BorderRadius.circular(18),
+
+                    icon: const Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      size: 26,
+                      color: Color(0xFF6366F1),
+                    ),
+
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E293B),
+                    ),
+
+                    items: const [
+
+                      DropdownMenuItem(
+                        value: "Daily",
+                        child: Text("Daily"),
+                      ),
+
+                      DropdownMenuItem(
+                        value: "Monthly",
+                        child: Text("Monthly"),
+                      ),
+
+                      DropdownMenuItem(
+                        value: "Yearly",
+                        child: Text("Yearly"),
+                      ),
+
+                      DropdownMenuItem(
+                        value: "Custom Range",
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_month,
+                              size: 18,
+                            ),
+                            SizedBox(width: 8),
+                            Text("Custom Range"),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    onChanged: (value) async {
+
+                      if (value == null) return;
+
+                      if (value == "Custom Range") {
+
+                        await model.openCustomRangePicker(
+                          context,
+                        );
+
+                      } else {
+
+                        await model.changePeriod(
+                          value,
+                        );
+                      }
+                    },
+                  ),
+                ),
               ),
             ),
+            if (model.selectedPeriod == "Custom Range" &&
+                model.selectedRange != null)
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                PeriodFilterChip(
-                  period: "Daily",
-                  selectedPeriod: model.selectedPeriod,
-                  onSelected: model.changePeriod,
-                ),
-                PeriodFilterChip(
-                  period: "Monthly",
-                  selectedPeriod: model.selectedPeriod,
-                  onSelected: model.changePeriod,
-                ),
-                PeriodFilterChip(
-                  period: "Yearly",
-                  selectedPeriod: model.selectedPeriod,
-                  onSelected: model.changePeriod,
-                ),
-              ],
-            ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10),
 
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEEF2FF),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+
+                  child: Text(
+                    "${DateFormat('dd MMM yyyy').format(model.selectedRange!.start)}"
+                        " → "
+                        "${DateFormat('dd MMM yyyy').format(model.selectedRange!.end)}",
+
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF4338CA),
+                    ),
+                  ),
+                ),
+              ),
 
             // SizedBox(
             //   height: 300,
@@ -1908,7 +2018,11 @@ class SalesLeaderboardCard extends StatelessWidget {
   // ── header labels ──────────────────────────
   String get _prevLabel {
 
-    if (entries.isEmpty) return 'Previous';
+    if (selectedPeriod == "Custom Range") {
+      return "Previous Range";
+    }
+
+    if (entries.isEmpty) return "Previous";
 
     final e = entries.first;
 
@@ -1925,7 +2039,11 @@ class SalesLeaderboardCard extends StatelessWidget {
 
   String get _currLabel {
 
-    if (entries.isEmpty) return 'Current';
+    if (selectedPeriod == "Custom Range") {
+      return "Selected Range";
+    }
+
+    if (entries.isEmpty) return "Current";
 
     final e = entries.first;
 
@@ -1968,7 +2086,7 @@ class SalesLeaderboardCard extends StatelessWidget {
           scrollDirection: Axis.horizontal,
 
           child: SizedBox(
-            width: MediaQuery.of(context).size.width * 1.15,
+            width: MediaQuery.of(context).size.width * 1.08,
 
             child: SingleChildScrollView(
               scrollDirection: Axis.vertical,
@@ -1982,48 +2100,65 @@ class SalesLeaderboardCard extends StatelessWidget {
                 child: Column(
                   children: [
 
-                    _TableHeader(
-                      labels: [
-                        'Rank',
-                        'Sales Person',
-                        _prevLabel,
-                        _currLabel,
-                        'Growth',
-                        'Status',
-                      ],
-                      flex: _flex,
+                  // FIXED HEADER
+                  _TableHeader(
+                  labels: [
+                  'Rank',
+                  'Sales Person',
+                  _prevLabel,
+                  _currLabel,
+                  'Growth',
+                  'Status',
+                  ],
+                  flex: _flex,
+                ),
+
+                // SCROLLABLE ROWS
+                SizedBox(
+                  height: 300,
+
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+
+                    child: Column(
+                      children: List.generate(entries.length, (i) {
+
+                        final e = entries[i];
+                        final isLast = i == entries.length - 1;
+
+                        double prev = 0, curr = 0;
+
+                        if (selectedPeriod == 'Daily') {
+
+                          prev = e.sales.daily.previous;
+                          curr = e.sales.daily.current;
+
+                        } else if (selectedPeriod == 'Monthly') {
+
+                          prev = e.sales.monthly.previous;
+                          curr = e.sales.monthly.current;
+
+                        } else if (selectedPeriod == 'Custom Range') {
+
+                          prev = e.comparison.previousSales;
+                          curr = e.totalSales;
+
+                        } else {
+
+                          prev = e.sales.fiscal.previous;
+                          curr = e.sales.fiscal.current;
+                        }
+                        return _LeaderboardRow(
+                          entry: e,
+                          prevSales: prev,
+                          currSales: curr,
+                          isLast: isLast,
+                          flex: _flex,
+                        );
+                      }),
                     ),
-
-                    ...List.generate(entries.length, (i) {
-
-                      final e = entries[i];
-                      final isLast = i == entries.length - 1;
-
-                      double prev = 0, curr = 0;
-
-                      if (selectedPeriod == 'Daily') {
-
-                        prev = e.sales.daily.previous;
-                        curr = e.sales.daily.current;
-
-                      } else if (selectedPeriod == 'Monthly') {
-
-                        prev = e.sales.monthly.previous;
-                        curr = e.sales.monthly.current;
-
-                      } else {
-
-                        prev = e.sales.fiscal.previous;
-                        curr = e.sales.fiscal.current;
-                      }
-                      return _LeaderboardRow(
-                        entry: e,
-                        prevSales: prev,
-                        currSales: curr,
-                        isLast: isLast,
-                        flex: _flex,
-                      );
-                    }),
+                  ),
+                ),
                   ],
                 ),
               ),
@@ -2102,32 +2237,41 @@ class TerritorySummaryCard extends StatelessWidget {
                 child: Column(
                   children: [
 
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 13,
-                      ),
+                // FIXED HEADER
+                Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 13,
+                ),
 
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Color(0xFF6366F1),
-                            Color(0xFF8B5CF6),
-                          ],
-                        ),
-                      ),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color(0xFF6366F1),
+                      Color(0xFF8B5CF6),
+                    ],
+                  ),
+                ),
 
-                      child: Row(
-                        children: [
-                          _gradientHeader('Territory', flex: _flex[0]),
-                          _gradientHeader('New', flex: _flex[1], center: true),
-                          _gradientHeader('Converted', flex: _flex[2], center: true),
-                          _gradientHeader('Leads', flex: _flex[3], center: true),
-                        ],
-                      ),
-                    ),
+                child: Row(
+                  children: [
+                    _gradientHeader('Territory', flex: _flex[0]),
+                    _gradientHeader('New', flex: _flex[1], center: true),
+                    _gradientHeader('Converted', flex: _flex[2], center: true),
+                    _gradientHeader('Leads', flex: _flex[3], center: true),
+                  ],
+                ),
+              ),
 
-                    ...List.generate(entries.length, (i) {
+              // SCROLLABLE ROWS
+              SizedBox(
+                height: 250,
+
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+
+                  child: Column(
+                    children: List.generate(entries.length, (i) {
 
                       final e = entries[i];
                       final isLast = i == entries.length - 1;
@@ -2140,6 +2284,9 @@ class TerritorySummaryCard extends StatelessWidget {
                         flex: _flex,
                       );
                     }),
+                  ),
+                ),
+              ),
                   ],
                 ),
               ),
@@ -2332,7 +2479,10 @@ class _LeaderboardRow extends StatelessWidget {
           // Rank Badge
           Expanded(
             flex: flex[0],
-            child: Center(child: _RankBadge(rank: entry.rank)),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: _RankBadge(rank: entry.rank),
+            ),
           ),
           // Sales Person
           Expanded(
@@ -2347,7 +2497,7 @@ class _LeaderboardRow extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                     color: Color(0xFF1A1A2E),
                     height: 1.2,
@@ -2374,7 +2524,7 @@ class _LeaderboardRow extends StatelessWidget {
               NumberFormat.compact().format(prevSales),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: Color(0xFF888888),
                 fontWeight: FontWeight.w500,
               ),
@@ -2387,7 +2537,7 @@ class _LeaderboardRow extends StatelessWidget {
               NumberFormat.compact().format(currSales),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF1A1A2E),
               ),
@@ -2465,7 +2615,7 @@ class _TerritoryRow extends StatelessWidget {
                     entry.territory,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF1A1A2E),
                     ),
@@ -2481,7 +2631,7 @@ class _TerritoryRow extends StatelessWidget {
               entry.newCustomers.toString(),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF2563EB),
               ),
@@ -2494,7 +2644,7 @@ class _TerritoryRow extends StatelessWidget {
               entry.converted.toString(),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF059669),
               ),
@@ -2507,7 +2657,7 @@ class _TerritoryRow extends StatelessWidget {
               entry.leads.toString(),
               textAlign: TextAlign.center,
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: Color(0xFF7C3AED),
               ),
