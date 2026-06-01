@@ -26,6 +26,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<void> fetchOrder() async {
     try {
       final fetchedOrder = await _service.getOrder(widget.orderId);
+      print("========== ITEMS ==========");
+      for (var item in fetchedOrder?.items ?? []) {
+        print("ITEM NAME = ${item.itemName}");
+        print("QTY = ${item.qty}");
+        print("AMOUNT = ${item.amount}");
+        print("NET AMOUNT = ${item.netAmount}");
+        print("BASE AMOUNT = ${item.baseAmount}");
+        print("DELIVERY DATE = ${item.deliveryDate}");
+      }
+      print("===========================");
       setState(() {
         orderData = fetchedOrder;
         isLoading = false;
@@ -223,6 +233,11 @@ class _OrderItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final finalAmount =
+        (item.amount ?? 0) +
+            (item.igstAmount ?? 0) +
+            (item.cgstAmount ?? 0) +
+            (item.sgstAmount ?? 0);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
@@ -251,14 +266,60 @@ class _OrderItemCard extends StatelessWidget {
           const SizedBox(width: 14),
           // Item name
           Expanded(
-            child: Text(
-              item.itemName ?? "",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 14.5,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.itemName ?? "",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14.5,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 6),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.calendar_today_outlined,
+                      size: 12,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      item.deliveryDate ?? "-",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 4),
+
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.currency_rupee,
+                      size: 12,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(width: 2),
+                    Text(
+                      finalAmount.toStringAsFixed(2),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 12),

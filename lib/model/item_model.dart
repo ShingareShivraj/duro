@@ -5,6 +5,9 @@ class ItemModel {
   String? image;
   double? actualQty;
   double? rate;
+  double? igstAmount;
+  double? cgstAmount;
+  double? sgstAmount;
 
   ItemModel(
       {this.name,

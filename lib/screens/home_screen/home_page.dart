@@ -4867,8 +4867,8 @@ class DistributorHomePage extends StatelessWidget {
                     _buildHeader(context),
                     const SizedBox(height: 18),
                     _DistributorBannerCard(
+                      company:"Our Partner",
                       name: dashboard.empName ?? "Distributor",
-                      company: dashboard.company ?? "",
                       email: dashboard.email ?? "",
                     ),
                     const SizedBox(height: 22),
@@ -5140,16 +5140,7 @@ class _DistributorBannerCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
+
                 const SizedBox(height: 4),
                 Text(
                   company,
@@ -5160,16 +5151,27 @@ class _DistributorBannerCard extends StatelessWidget {
                     color: Colors.white.withOpacity(0.92),
                   ),
                 ),
-                const SizedBox(height: 4),
+
                 Text(
-                  email,
+                  name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.84),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
+                // const SizedBox(height: 4),
+                // Text(
+                //   email,
+                //   maxLines: 1,
+                //   overflow: TextOverflow.ellipsis,
+                //   style: TextStyle(
+                //     fontSize: 12,
+                //     color: Colors.white.withOpacity(0.84),
+                //   ),
+                // ),
               ],
             ),
           ),

@@ -448,7 +448,9 @@ class Items {
   String? parentfield;
   String? parenttype;
   String? doctype;
-
+  double? igstAmount;
+  double? cgstAmount;
+  double? sgstAmount;
   Items(
       {this.name,
       this.owner,
@@ -508,7 +510,10 @@ class Items {
       this.parent,
       this.parentfield,
       this.parenttype,
-      this.doctype});
+      this.doctype,
+        this.igstAmount,
+        this.cgstAmount,
+        this.sgstAmount,});
 
   Items.fromJson(Map<String, dynamic> json) {
     name = json['name'];
@@ -571,6 +576,9 @@ class Items {
     parentfield = json['parentfield'];
     parenttype = json['parenttype'];
     doctype = json['doctype'];
+    igstAmount = json['igst_amount'];
+    cgstAmount = json['cgst_amount'];
+    sgstAmount = json['sgst_amount'];
   }
 
   Map<String, dynamic> toJson() {
@@ -635,6 +643,9 @@ class Items {
     data['parentfield'] = parentfield;
     data['parenttype'] = parenttype;
     data['doctype'] = doctype;
+    data['igst_amount'] = igstAmount;
+    data['cgst_amount'] = cgstAmount;
+    data['sgst_amount'] = sgstAmount;
     return data;
   }
 }

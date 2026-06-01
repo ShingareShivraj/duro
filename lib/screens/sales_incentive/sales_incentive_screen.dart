@@ -444,7 +444,7 @@ class _IncentiveCard extends StatelessWidget {
                 Row(
                   children: [
                     Text(
-                      'Rule: ',
+                      'Rule: 100% Against achievement',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,

@@ -35,6 +35,19 @@ class HomeServices {
 
         url += '&from_date=$from&to_date=$to';
       }
+
+
+      print("================================");
+      print("PERIOD : $period");
+      print("RANGE  : $range");
+
+      if (range != null) {
+        print("START  : ${range.start}");
+        print("END    : ${range.end}");
+      }
+
+      print("URL    : $url");
+      print("================================");
       final response = await _dio.get(
         url,
         options: Options(headers: {'Authorization': await getTocken()}),
