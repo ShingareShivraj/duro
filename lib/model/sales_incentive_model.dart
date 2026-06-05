@@ -3,12 +3,16 @@ class SalesIncentiveResponse {
   final int totalAchieved;
   final double incentive; // ✅ FIX TYPE
   final List<ProductProgress> products;
+  final String monthLabel;
+  final String fyLabel;
 
   SalesIncentiveResponse({
     required this.totalTarget,
     required this.totalAchieved,
     required this.incentive,
     required this.products,
+    required this.monthLabel,
+    required this.fyLabel,
   });
 
   factory SalesIncentiveResponse.fromJson(Map<String, dynamic> json) {
@@ -19,6 +23,9 @@ class SalesIncentiveResponse {
       products: (json['products'] as List)
           .map((e) => ProductProgress.fromJson(e))
           .toList(),
+
+      monthLabel: json["month_label"] ?? "Month",
+      fyLabel: json["fy_label"] ?? "FY",
     );
   }
 }

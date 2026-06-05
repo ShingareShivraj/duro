@@ -8,6 +8,8 @@ class SalesIncentiveViewModel extends BaseViewModel {
   double incentiveAmount = 0;
 
   String selectedPeriod = "monthly";
+  String monthLabel = "Month";
+  String fyLabel = "FY";
   final _service = SalesIncentiveServices();
 
   List<ProductProgress> products = [];
@@ -37,10 +39,15 @@ class SalesIncentiveViewModel extends BaseViewModel {
     final response = await _service.fetchSalesIncentive(selectedPeriod);
 
     if (response != null) {
+      print("MONTH = ${response.monthLabel}");
+      print("FY = ${response.fyLabel}");
       totalTarget = response.totalTarget;
       totalAchieved = response.totalAchieved;
       incentiveAmount = response.incentive;
       products = response.products;
+
+      monthLabel = response.monthLabel;
+      fyLabel = response.fyLabel;
     }
 
     notifyListeners();

@@ -186,13 +186,15 @@ class _HeaderSection extends StatelessWidget {
               child: Row(
                 children: [
                   _FilterChip(
-                    label: "Monthly",
+                    label: model.monthLabel,
                     isSelected: model.selectedPeriod == "monthly",
                     onTap: () => model.setPeriod("monthly"),
                   ),
+                  const SizedBox(width: 10),
+
 
                   _FilterChip(
-                    label: "Yearly",
+                    label: model.fyLabel,
                     isSelected: model.selectedPeriod == "yearly",
                     onTap: () => model.setPeriod("yearly"),
                   ),
@@ -773,6 +775,9 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap, // 🔥 IMPORTANT
       child: Container(
+        constraints: const BoxConstraints(
+          minWidth: 90,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: isSelected
