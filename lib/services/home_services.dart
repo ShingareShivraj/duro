@@ -17,6 +17,10 @@ class HomeServices {
   final Dio _dio = Dio();
   final Logger _logger = Logger();
 
+  static const String _commissionDashboardEndpoint =
+      '/api/method/mobile.mobile_env.commission_dashboard'
+      '.get_my_commission_dashboard';
+
   Future<DashBoard?> dashboard(
       String period, {
         DateTimeRange? range,
@@ -198,6 +202,95 @@ class HomeServices {
       _handleDioError(e, context: "fetchRoles");
     }
     return [];
+  }
+
+  Future<CommissionDashboard?> commissionDashboard({
+    DateTime? month,
+    String? salesPerson,
+    bool showError = true,
+  }) async {
+    try {
+      final selectedMonth = month ?? DateTime.now();
+
+      final queryParameters = <String, dynamic>{
+        'month': DateFormat('yyyy-MM-dd').format(
+          DateTime(selectedMonth.year, selectedMonth.month, 1),
+        ),
+      };
+
+      final normalizedSalesPerson = salesPerson?.trim();
+
+      if (normalizedSalesPerson != null &&
+          normalizedSalesPerson.isNotEmpty) {
+        queryParameters['sales_person'] = normalizedSalesPerson;
+      }
+
+      final response = await _dio.get(
+        '${await geturl()}$_commissionDashboardEndpoint',
+        queryParameters: queryParameters,
+        options: Options(
+          headers: {
+            'Authorization': await getTocken(),
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final responseBody = response.data;
+
+        if (responseBody is Map) {
+          final rawData = responseBody['data'];
+
+          if (rawData is Map) {
+            return CommissionDashboard.fromJson(
+              Map<String, dynamic>.from(rawData),
+            );
+          }
+
+          if (showError) {
+            _showToast(
+              responseBody['message']?.toString() ??
+                  'Commission dashboard data is unavailable',
+              isError: true,
+            );
+          }
+        } else if (showError) {
+          _showToast(
+            'Invalid commission dashboard response',
+            isError: true,
+          );
+        }
+      } else if (showError) {
+        _showToast(
+          'Unable to load commission dashboard',
+          isError: true,
+        );
+      }
+    } on DioException catch (error) {
+      if (showError) {
+        _handleDioError(
+          error,
+          context: 'commissionDashboard',
+        );
+      } else {
+        _logger.e(
+          '[commissionDashboard] ${error.message}',
+        );
+      }
+    } catch (error) {
+      if (showError) {
+        _handleDioError(
+          error,
+          context: 'commissionDashboard',
+        );
+      } else {
+        _logger.e(
+          '[commissionDashboard] $error',
+        );
+      }
+    }
+
+    return null;
   }
 
   /// Handles DioException and logs properly

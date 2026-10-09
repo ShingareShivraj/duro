@@ -61,7 +61,7 @@ class Geolocation extends StatelessWidget {
                             urlTemplate:
                                 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName:
-                                'dev.fleaflet.flutter_map.example',
+                                'dev.fleaflet.flutter_map.sanpra',
                             // Plenty of other options available!
                           ),
                           MarkerLayer(

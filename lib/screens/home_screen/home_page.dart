@@ -641,11 +641,18 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
-            CurrentLocationMapCard(),
+            const CurrentLocationMapCard(),
 
             const SizedBox(height: 16),
 
-            // Sales Dashboard
+            if (model.hasCommissionDashboard ||
+                model.commissionLoading ||
+                model.commissionError != null) ...[
+              CommissionDashboardCard(model: model),
+              const SizedBox(height: 16),
+            ],
+
+// Sales Dashboard
             const Text(
               "Visit & Tour Dashboard",
               style: TextStyle(
@@ -2000,6 +2007,1688 @@ class _HomePageState extends State<HomePage> {
 // ─────────────────────────────────────────────
 //  SALES LEADERBOARD CARD
 // ─────────────────────────────────────────────
+class CommissionDashboardCard extends StatelessWidget {
+  final HomeViewModel model;
+
+  const CommissionDashboardCard({
+    super.key,
+    required this.model,
+  });
+
+  static const Color _primary = Color(0xFF2563EB);
+  static const Color _primaryDark = Color(0xFF1D4ED8);
+  static const Color _green = Color(0xFF059669);
+  static const Color _orange = Color(0xFFF59E0B);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _border = Color(0xFFE2E8F0);
+
+  @override
+  Widget build(BuildContext context) {
+    final data = model.commissionDashboard;
+
+    if (data == null) {
+      return _buildUnavailableState();
+    }
+
+    final summary = data.summary;
+
+    if (summary == null) {
+      return _buildUnavailableState();
+    }
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: Container(
+        key: ValueKey(
+          '${data.selectedSalesPerson?.name}-'
+              '${data.period?.monthValue}',
+        ),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: _border),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.045),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context, data),
+
+                  if (data.isSalesManager) ...[
+                    const SizedBox(height: 12),
+                    _buildSalesPersonDropdown(data),
+                  ],
+
+                  const SizedBox(height: 14),
+                  _buildSummary(summary, data.currency),
+
+                  const SizedBox(height: 14),
+                  _buildProgress(summary),
+
+                  const SizedBox(height: 16),
+
+                  if (data.milestones.isNotEmpty)
+                    _CommissionMilestoneFlow(
+                      milestones: data.milestones,
+                      currency: data.currency,
+                      achievementPercent: summary.achievementPercent,
+                    )
+                  else
+                    const _CommissionMilestoneEmpty(),
+
+                  if (data.nextGoal != null) ...[
+                    const SizedBox(height: 14),
+                    _CommissionNextGoalCard(
+                      goal: data.nextGoal!,
+                      currency: data.currency,
+                    ),
+                  ],
+
+                  const SizedBox(height: 16),
+
+                  _buildCustomerCommissionOpportunities(
+                    data,
+                    data.currency,
+                  ),
+
+                  const SizedBox(height: 16),
+                  _buildWeeklyHeader(),
+
+                  const SizedBox(height: 8),
+                  _buildWeeks(
+                    data.weeks,
+                    data.currency,
+                  ),
+
+                  const SizedBox(height: 10),
+                  _buildCommissionTotal(
+                    summary,
+                    data.currency,
+                  ),
+                ],
+              ),
+            ),
+
+            if (model.commissionLoading)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    color: Colors.white.withOpacity(0.72),
+                    alignment: Alignment.center,
+                    child: const SizedBox(
+                      height: 28,
+                      width: 28,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: _primary,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(
+      BuildContext context,
+      CommissionDashboard data,
+      ) {
+    final monthLabel = data.period?.month ??
+        DateFormat('MMMM yyyy').format(
+          model.selectedCommissionMonth,
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title always stays in one horizontal row.
+        Row(
+          children: [
+            Container(
+              height: 38,
+              width: 38,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: const Icon(
+                Icons.bar_chart_rounded,
+                color: _primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Sales Target & Commission',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _textPrimary,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  height: 1.2,
+                ),
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        // Subtitle and month selector use a separate row.
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                'Monthly sales performance',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: _textSecondary,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: model.commissionLoading
+                    ? null
+                    : () => _selectMonth(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: _border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_month_outlined,
+                        size: 15,
+                        color: _primary,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        monthLabel,
+                        style: const TextStyle(
+                          color: _textPrimary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: _textSecondary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectMonth(BuildContext context) async {
+    final selectedMonth = await showModalBottomSheet<DateTime>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return _CommissionMonthPicker(
+          initialMonth: model.selectedCommissionMonth,
+          firstYear: 2020,
+          lastYear: DateTime.now().year + 1,
+        );
+      },
+    );
+
+    if (selectedMonth == null) {
+      return;
+    }
+
+    await model.changeCommissionMonth(
+      DateTime(
+        selectedMonth.year,
+        selectedMonth.month,
+        1,
+      ),
+    );
+  }
+
+  Widget _buildSalesPersonDropdown(
+      CommissionDashboard data,
+      ) {
+    final people = data.salesPersons;
+
+    if (people.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(11),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFBEB),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(
+            color: const Color(0xFFFDE68A),
+          ),
+        ),
+        child: const Text(
+          'No Sales Persons are available for your company.',
+          style: TextStyle(
+            color: Color(0xFF92400E),
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+
+    final selectedName =
+    people.any(
+          (person) =>
+      person.name ==
+          model.selectedCommissionSalesPerson,
+    )
+        ? model.selectedCommissionSalesPerson
+        : null;
+
+    return DropdownButtonFormField<String>(
+      value: selectedName,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Sales Person',
+        prefixIcon: const Icon(
+          Icons.person_search_outlined,
+          size: 20,
+          color: _primary,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 10,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(color: _border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(color: _border),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(11),
+          borderSide: const BorderSide(
+            color: _primary,
+            width: 1.4,
+          ),
+        ),
+      ),
+      items: people.map((person) {
+        return DropdownMenuItem<String>(
+          value: person.name,
+          child: Text(
+            person.displayName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }).toList(),
+      onChanged: model.commissionLoading
+          ? null
+          : model.changeCommissionSalesPerson,
+    );
+  }
+
+  Widget _buildSummary(
+      CommissionSummary summary,
+      String currency,
+      ) {
+    return Row(
+      children: [
+        Expanded(
+          child: _CommissionMetric(
+            label: 'Monthly Target',
+            value: _money(
+              summary.monthlyTarget,
+              currency,
+            ),
+            color: _textPrimary,
+          ),
+        ),
+        _verticalDivider(),
+        Expanded(
+          child: _CommissionMetric(
+            label: 'Total Sales',
+            value: _money(
+              summary.totalSales,
+              currency,
+            ),
+            color: _primary,
+          ),
+        ),
+        _verticalDivider(),
+        Expanded(
+          child: _CommissionMetric(
+            label: 'Achievement',
+            value:
+            '${summary.achievementPercent.toStringAsFixed(1)}%',
+            color: summary.targetAchieved
+                ? _green
+                : _orange,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(
+      width: 1,
+      height: 42,
+      color: _border,
+    );
+  }
+
+  Widget _buildProgress(CommissionSummary summary) {
+    final progress = summary.progress;
+
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: LinearProgressIndicator(
+            value: progress,
+            minHeight: 9,
+            backgroundColor: const Color(0xFFE8EEF7),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              _primary,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Text(
+              summary.targetAchieved
+                  ? 'Monthly target achieved'
+                  : '${_compactMoney(summary.targetRemaining)} remaining',
+              style: TextStyle(
+                color: summary.targetAchieved
+                    ? _green
+                    : _textSecondary,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '${summary.achievementPercent.toStringAsFixed(1)}%',
+              style: const TextStyle(
+                color: _primaryDark,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerCommissionOpportunities(
+      CommissionDashboard data,
+      String currency,
+      ) {
+    final opportunities = data.customerOpportunities;
+    final selectedPerson =
+        data.selectedSalesPerson?.displayName ?? 'Sales Person';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFFFFBEB),
+            Color(0xFFFFF7ED),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFFDE3A7),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEDD5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.emoji_events_rounded,
+                  size: 21,
+                  color: Color(0xFFF59E0B),
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Customer Commission Opportunities',
+                      maxLines: 2,
+                      style: TextStyle(
+                        color: _textPrimary,
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      data.isSalesManager
+                          ? 'Showing opportunities for $selectedPerson'
+                          : 'Do more sales and earn additional commission',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _textSecondary,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w500,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (opportunities.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    '${opportunities.length}',
+                    style: const TextStyle(
+                      color: Color(0xFFD97706),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 11),
+
+          if (opportunities.isEmpty)
+            _buildCustomerOpportunityEmptyState(data)
+          else
+            ...opportunities.map(
+                  (opportunity) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildCustomerOpportunityRow(
+                  opportunity,
+                  currency,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildCustomerOpportunityEmptyState(
+      CommissionDashboard data,
+      ) {
+    final selectedPerson =
+        data.selectedSalesPerson?.displayName ??
+            'Selected salesperson';
+
+    final title = data.isSalesManager
+        ? 'No customer opportunities for $selectedPerson'
+        : 'Unlock more customer commission';
+
+    final message = data.isSalesManager
+        ? '$selectedPerson has not yet made a qualifying sale '
+        'to a new or reactivated customer this month.'
+        : 'Create a new customer or reactivate an inactive '
+        'customer, complete the required sales and earn '
+        'additional commission.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.86),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFDE7BA),
+        ),
+      ),
+      child: Column(
+        children: [
+          Container(
+            height: 42,
+            width: 42,
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFF7E6),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.add_business_rounded,
+              color: Color(0xFFF59E0B),
+              size: 23,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _textPrimary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              color: _textSecondary,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w500,
+              height: 1.35,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _buildOpportunitySuggestion(
+                  icon: Icons.person_add_alt_1_rounded,
+                  label: 'New Customer',
+                  color: const Color(0xFF059669),
+                  backgroundColor: const Color(0xFFECFDF5),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: _buildOpportunitySuggestion(
+                  icon: Icons.refresh_rounded,
+                  label: 'Reactivate',
+                  color: const Color(0xFFEA580C),
+                  backgroundColor: const Color(0xFFFFF7ED),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOpportunitySuggestion({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required Color backgroundColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+        vertical: 8,
+      ),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            size: 15,
+            color: color,
+          ),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: color,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomerOpportunityRow(
+      CustomerCommissionOpportunity opportunity,
+      String currency,
+      ) {
+    final isNewCustomer = opportunity.isNewCustomer;
+
+    final accentColor = isNewCustomer
+        ? const Color(0xFF059669)
+        : const Color(0xFFEA580C);
+
+    final lightColor = isNewCustomer
+        ? const Color(0xFFECFDF5)
+        : const Color(0xFFFFF7ED);
+
+    final displayDate = isNewCustomer
+        ? opportunity.customerCreatedOn
+        : opportunity.previousPurchaseDate;
+
+    final dateLabel = isNewCustomer
+        ? 'Created'
+        : 'Last purchase';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: accentColor.withOpacity(0.14),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isNewCustomer
+                          ? Icons.person_add_alt_1_rounded
+                          : Icons.autorenew_rounded,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      opportunity.typeLabel.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              if (opportunity.isEarned)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 7,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    'Earned',
+                    style: TextStyle(
+                      color: Color(0xFF15803D),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(height: 9),
+
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 42,
+                width: 42,
+                decoration: BoxDecoration(
+                  color: lightColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.storefront_rounded,
+                  color: accentColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      opportunity.customerName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _textPrimary,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (displayDate != null &&
+                        displayDate.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today_outlined,
+                            size: 11,
+                            color: _textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              '$dateLabel: '
+                                  '${_formatOpportunityDate(displayDate)}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: _textSecondary,
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${_money(opportunity.currentSales, currency)}'
+                    ' / '
+                    '${_money(
+                  opportunity.minimumPurchaseAmount,
+                  currency,
+                )}',
+                style: TextStyle(
+                  color: accentColor,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 9),
+
+          ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: LinearProgressIndicator(
+              value: opportunity.progress,
+              minHeight: 7,
+              backgroundColor: const Color(0xFFE5E7EB),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                accentColor,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          if (opportunity.isEarned)
+            Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Color(0xFF059669),
+                  size: 15,
+                ),
+                const SizedBox(width: 5),
+                Expanded(
+                  child: Text(
+                    '${_money(
+                      opportunity.commissionAmount,
+                      currency,
+                    )} commission achieved',
+                    style: const TextStyle(
+                      color: Color(0xFF047857),
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else ...[
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: _money(
+                      opportunity.remainingSales,
+                      currency,
+                    ),
+                    style: TextStyle(
+                      color: accentColor,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' more sales to earn ',
+                  ),
+                  TextSpan(
+                    text: _money(
+                      opportunity.commissionAmount,
+                      currency,
+                    ),
+                    style: TextStyle(
+                      color: accentColor,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const TextSpan(
+                    text: ' commission',
+                  ),
+                ],
+              ),
+              style: const TextStyle(
+                color: _textSecondary,
+                fontSize: 10.5,
+                fontWeight: FontWeight.w500,
+                height: 1.3,
+              ),
+            ),
+            if (!opportunity.canStillEarn) ...[
+              const SizedBox(height: 4),
+              const Text(
+                'The selected commission period has ended.',
+                style: TextStyle(
+                  color: Color(0xFFB91C1C),
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyHeader() {
+    return const Row(
+      children: [
+        Icon(
+          Icons.calendar_view_week_rounded,
+          color: _primary,
+          size: 20,
+        ),
+        SizedBox(width: 7),
+        Text(
+          'Weekly Sales Performance',
+          style: TextStyle(
+            color: _textPrimary,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeeks(
+      List<CommissionWeek> weeks,
+      String currency,
+      ) {
+    if (weeks.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(11),
+        ),
+        child: const Text(
+          'No weekly sales information is available.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: _textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: weeks.map((week) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 7),
+          child: _CommissionWeekRow(
+            week: week,
+            currency: currency,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildCommissionTotal(
+      CommissionSummary summary,
+      String currency,
+      ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 11,
+      ),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFFEFF6FF),
+            Color(0xFFF0FDF4),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFDBEAFE),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Text(
+            'Total Commission',
+            style: TextStyle(
+              color: _textPrimary,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            _money(
+              summary.totalCommission,
+              currency,
+            ),
+            style: const TextStyle(
+              color: _green,
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUnavailableState() {
+    if (model.commissionLoading) {
+      return Container(
+        height: 130,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: _border),
+        ),
+        child: const CircularProgressIndicator(
+          strokeWidth: 2.5,
+          color: _primary,
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: _border),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            color: Color(0xFFDC2626),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              model.commissionError ??
+                  'Commission information is unavailable.',
+              style: const TextStyle(
+                color: _textSecondary,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: model.retryCommissionDashboard,
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  static String _formatOpportunityDate(String value) {
+    final date = DateTime.tryParse(value);
+
+    if (date == null) {
+      return value;
+    }
+
+    return DateFormat('dd MMM yyyy').format(date);
+  }
+  static String _money(
+      double value,
+      String currency,
+      ) {
+    final symbol = currency == 'INR' ? '₹' : '$currency ';
+
+    return NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: symbol,
+      decimalDigits: 0,
+    ).format(value);
+  }
+
+  static String _compactMoney(double value) {
+    if (value >= 10000000) {
+      return '₹${(value / 10000000).toStringAsFixed(1)}Cr';
+    }
+
+    if (value >= 100000) {
+      return '₹${(value / 100000).toStringAsFixed(1)}L';
+    }
+
+    if (value >= 1000) {
+      return '₹${(value / 1000).toStringAsFixed(1)}K';
+    }
+
+    return '₹${value.toStringAsFixed(0)}';
+  }
+}
+
+class _CommissionMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const _CommissionMetric({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          label,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: Color(0xFF64748B),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            value,
+            maxLines: 1,
+            style: TextStyle(
+              color: color,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+class _CommissionMilestoneFlow extends StatelessWidget {
+  final List<CommissionMilestone> milestones;
+  final String currency;
+  final double achievementPercent;
+
+  const _CommissionMilestoneFlow({
+    required this.milestones,
+    required this.currency,
+    required this.achievementPercent,
+  });
+
+  int _currentMilestoneIndex() {
+    final backendCurrentIndex = milestones.indexWhere(
+          (milestone) => milestone.isCurrent,
+    );
+
+    if (backendCurrentIndex >= 0) {
+      return backendCurrentIndex;
+    }
+
+    int currentIndex = 0;
+
+    for (int index = 0; index < milestones.length; index++) {
+      if (achievementPercent >=
+          milestones[index].fromTargetPercent) {
+        currentIndex = index;
+      }
+    }
+
+    return currentIndex;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = _currentMilestoneIndex();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
+          children: [
+            // Icon(
+            //   Icons.route_rounded,
+            //   color: Color(0xFF2563EB),
+            //   size: 19,
+            // ),
+            SizedBox(width: 7),
+            Text(
+              'Commission Progress',
+              style: TextStyle(
+                color: Color(0xFF0F172A),
+                fontSize: 13.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final count = milestones.length;
+            final itemWidth = constraints.maxWidth / count;
+
+            return SizedBox(
+              height: 116,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  if (count > 1)
+                    Positioned(
+                      left: itemWidth / 2,
+                      right: itemWidth / 2,
+                      top: 42,
+                      child: Container(
+                        height: 2,
+                        color: const Color(0xFFCBD5E1),
+                      ),
+                    ),
+
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: List.generate(
+                      count,
+                          (index) {
+                        final milestone = milestones[index];
+                        final isCurrent =
+                            index == currentIndex;
+                        final isCompleted =
+                            index < currentIndex;
+
+                        return Expanded(
+                          child: _CommissionMilestoneNode(
+                            milestone: milestone,
+                            isCurrent: isCurrent,
+                            isCompleted: isCompleted,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _CommissionMilestoneNode extends StatelessWidget {
+  final CommissionMilestone milestone;
+  final bool isCurrent;
+  final bool isCompleted;
+
+  const _CommissionMilestoneNode({
+    required this.milestone,
+    required this.isCurrent,
+    required this.isCompleted,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const primary = Color(0xFF2563EB);
+    const green = Color(0xFF059669);
+    const inactive = Color(0xFF94A3B8);
+
+    final nodeColor = isCurrent
+        ? primary
+        : isCompleted
+        ? green
+        : inactive;
+
+    return Column(
+      children: [
+        SizedBox(
+          height: 25,
+          child: isCurrent
+              ? Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: primary,
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: const Text(
+              'You are here',
+              maxLines: 1,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          )
+              : null,
+        ),
+
+        const SizedBox(height: 2),
+
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: isCompleted
+                ? green
+                : Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: nodeColor,
+              width: isCurrent ? 3 : 2,
+            ),
+            boxShadow: isCurrent
+                ? [
+              BoxShadow(
+                color: primary.withOpacity(0.22),
+                blurRadius: 8,
+                spreadRadius: 2,
+              ),
+            ]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: isCompleted
+              ? const Icon(
+            Icons.check_rounded,
+            color: Colors.white,
+            size: 18,
+          )
+              : isCurrent
+              ? Container(
+            width: 18,
+            height: 18,
+            decoration: const BoxDecoration(
+              color: primary,
+              shape: BoxShape.circle,
+            ),
+          )
+              : Text(
+            '${milestone.fromTargetPercent.toStringAsFixed(0)}',
+            style: const TextStyle(
+              color: inactive,
+              fontSize: 8,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        Text(
+          '${milestone.fromTargetPercent.toStringAsFixed(0)}%',
+          maxLines: 1,
+          style: TextStyle(
+            color: isCurrent
+                ? primary
+                : isCompleted
+                ? green
+                : const Color(0xFF0F172A),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+
+        const SizedBox(height: 2),
+
+        Text(
+          '${milestone.commissionPercent.toStringAsFixed(2)}%',
+          maxLines: 1,
+          style: TextStyle(
+            color: isCurrent
+                ? primary
+                : const Color(0xFF64748B),
+            fontSize: 9,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CommissionNextGoalCard extends StatelessWidget {
+  final CommissionNextGoal goal;
+  final String currency;
+
+  const _CommissionNextGoalCard({
+    required this.goal,
+    required this.currency,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 11,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: const Color(0xFFBFDBFE),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Container(
+          //   height: 34,
+          //   width: 34,
+          //   decoration: const BoxDecoration(
+          //     color: Color(0xFFDBEAFE),
+          //     shape: BoxShape.circle,
+          //   ),
+          //   // child: const Icon(
+          //   //   Icons.track_changes_rounded,
+          //   //   color: Color(0xFF2563EB),
+          //   //   size: 20,
+          //   // ),
+          // ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  color: Color(0xFF334155),
+                  fontSize: 11,
+                  height: 1.35,
+                ),
+                children: [
+                  TextSpan(
+                    text:
+                    '${CommissionDashboardCard._money(goal.remainingSales, currency)} more sales ',
+                    style: const TextStyle(
+                      color: Color(0xFF0F172A),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextSpan(
+                    text:
+                    'to reach ${goal.targetPercent.toStringAsFixed(0)}% '
+                        'and unlock ${goal.commissionPercent.toStringAsFixed(2)}% commission.',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommissionWeekRow extends StatelessWidget {
+  final CommissionWeek week;
+  final String currency;
+
+  const _CommissionWeekRow({
+    required this.week,
+    required this.currency,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final activeColor = week.isCompleted
+        ? const Color(0xFF059669)
+        : week.isCurrent
+        ? const Color(0xFF2563EB)
+        : const Color(0xFF94A3B8);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 9,
+      ),
+      decoration: BoxDecoration(
+        color: week.isCurrent
+            ? const Color(0xFFF8FAFF)
+            : const Color(0xFFFFFFFF),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: week.isCurrent
+              ? const Color(0xFFBFDBFE)
+              : const Color(0xFFE2E8F0),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 28,
+            width: 28,
+            decoration: BoxDecoration(
+              color: activeColor.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              week.isCompleted
+                  ? Icons.check_rounded
+                  : Icons.circle,
+              size: week.isCompleted ? 17 : 10,
+              color: activeColor,
+            ),
+          ),
+          const SizedBox(width: 9),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Week ${week.week}',
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  _dateRange(
+                    week.fromDate,
+                    week.toDate,
+                  ),
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 9.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  CommissionDashboardCard._money(
+                    week.sales,
+                    currency,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF0F172A),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${week.commissionPercent.toStringAsFixed(2)}% commission',
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 9,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              CommissionDashboardCard._money(
+                week.commission,
+                currency,
+              ),
+              textAlign: TextAlign.end,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF059669),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _dateRange(
+      String? fromDate,
+      String? toDate,
+      ) {
+    final from = DateTime.tryParse(fromDate ?? '');
+    final to = DateTime.tryParse(toDate ?? '');
+
+    if (from == null || to == null) {
+      return '';
+    }
+
+    return '${DateFormat('d MMM').format(from)}'
+        ' – '
+        '${DateFormat('d MMM').format(to)}';
+  }
+}
+
 
 class SalesLeaderboardCard extends StatelessWidget {
   final List<LeaderboardModel> entries;
@@ -5312,6 +7001,320 @@ class _ShortcutTile extends StatelessWidget {
             const Icon(Icons.chevron_right_rounded, color: Colors.black38),
           ],
         ),
+      ),
+    );
+  }
+}
+class _CommissionMonthPicker extends StatefulWidget {
+  final DateTime initialMonth;
+  final int firstYear;
+  final int lastYear;
+
+  const _CommissionMonthPicker({
+    required this.initialMonth,
+    required this.firstYear,
+    required this.lastYear,
+  });
+
+  @override
+  State<_CommissionMonthPicker> createState() =>
+      _CommissionMonthPickerState();
+}
+
+class _CommissionMonthPickerState
+    extends State<_CommissionMonthPicker> {
+  static const Color _primary = Color(0xFF2563EB);
+  static const Color _textPrimary = Color(0xFF0F172A);
+  static const Color _textSecondary = Color(0xFF64748B);
+  static const Color _border = Color(0xFFE2E8F0);
+
+  late int _selectedYear;
+  late int _selectedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedYear = widget.initialMonth.year;
+    _selectedMonth = widget.initialMonth.month;
+  }
+
+  bool get _canGoPrevious =>
+      _selectedYear > widget.firstYear;
+
+  bool get _canGoNext =>
+      _selectedYear < widget.lastYear;
+
+  void _changeYear(int difference) {
+    final nextYear = _selectedYear + difference;
+
+    if (nextYear < widget.firstYear ||
+        nextYear > widget.lastYear) {
+      return;
+    }
+
+    setState(() {
+      _selectedYear = nextYear;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
+    return Container(
+      margin: EdgeInsets.only(
+        left: 12,
+        right: 12,
+        bottom: 12 + bottomInset,
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 42,
+            height: 4,
+            decoration: BoxDecoration(
+              color: const Color(0xFFCBD5E1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              Container(
+                height: 36,
+                width: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEFF6FF),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.calendar_month_rounded,
+                  color: _primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'Select commission month',
+                  style: TextStyle(
+                    color: _textPrimary,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Close',
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: _textSecondary,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 6,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _border),
+            ),
+            child: Row(
+              children: [
+                IconButton(
+                  tooltip: 'Previous year',
+                  onPressed: _canGoPrevious
+                      ? () => _changeYear(-1)
+                      : null,
+                  icon: const Icon(
+                    Icons.chevron_left_rounded,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    '$_selectedYear',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Next year',
+                  onPressed: _canGoNext
+                      ? () => _changeYear(1)
+                      : null,
+                  icon: const Icon(
+                    Icons.chevron_right_rounded,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: 12,
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 2.15,
+            ),
+            itemBuilder: (context, index) {
+              final monthNumber = index + 1;
+              final selected =
+                  monthNumber == _selectedMonth;
+
+              return Material(
+                color: selected
+                    ? _primary
+                    : const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(10),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    setState(() {
+                      _selectedMonth = monthNumber;
+                    });
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: selected
+                            ? _primary
+                            : _border,
+                      ),
+                    ),
+                    child: Text(
+                      DateFormat('MMM').format(
+                        DateTime(2026, monthNumber, 1),
+                      ),
+                      style: TextStyle(
+                        color: selected
+                            ? Colors.white
+                            : _textPrimary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 16),
+
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: FilledButton(
+              onPressed: () {
+                Navigator.pop(
+                  context,
+                  DateTime(
+                    _selectedYear,
+                    _selectedMonth,
+                    1,
+                  ),
+                );
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: _primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Apply ${DateFormat('MMMM yyyy').format(
+                  DateTime(
+                    _selectedYear,
+                    _selectedMonth,
+                    1,
+                  ),
+                )}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CommissionMilestoneEmpty extends StatelessWidget {
+  const _CommissionMilestoneEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 11,
+      ),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(11),
+        border: Border.all(
+          color: const Color(0xFFFDE68A),
+        ),
+      ),
+      child: const Row(
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: Color(0xFFD97706),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Commission milestones are not configured for this sales person.',
+              style: TextStyle(
+                color: Color(0xFF92400E),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

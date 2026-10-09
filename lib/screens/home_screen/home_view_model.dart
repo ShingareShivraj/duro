@@ -48,6 +48,76 @@ class HomeViewModel extends BaseViewModel {
   String greeting = "";
   String selectedPeriod = "Monthly";
   DateTimeRange? selectedRange;
+
+
+  // ───────────────────────── Commission Dashboard ─────────────────────────
+
+  CommissionDashboard? _commissionDashboard;
+
+  CommissionDashboard? get commissionDashboard => _commissionDashboard;
+
+  DateTime selectedCommissionMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  );
+
+  String? selectedCommissionSalesPerson;
+
+  bool commissionLoading = false;
+  String? commissionError;
+
+  int _commissionRequestId = 0;
+
+  bool get hasCommissionDashboard => _commissionDashboard != null;
+
+  bool get isCommissionSalesManager =>
+      _commissionDashboard?.isSalesManager == true;
+
+  List<CommissionSalesPerson> get commissionSalesPersons =>
+      _commissionDashboard?.salesPersons ??
+          const <CommissionSalesPerson>[];
+
+
+  List<CustomerCommissionOpportunity>
+  get customerCommissionOpportunities =>
+      _commissionDashboard?.customerOpportunities ??
+          const <CustomerCommissionOpportunity>[];
+
+  CustomerOpportunitySummary get customerOpportunitySummary =>
+      _commissionDashboard?.customerOpportunitySummary ??
+          const CustomerOpportunitySummary.empty();
+
+  bool get hasCustomerCommissionOpportunities =>
+      customerCommissionOpportunities.isNotEmpty;
+
+  String get customerOpportunityEmptyMessage {
+    final dashboard = _commissionDashboard;
+
+    if (dashboard == null) {
+      return 'Create a new customer or reactivate an inactive '
+          'customer to earn additional commission.';
+    }
+
+    if (dashboard.isSalesManager) {
+      final salesPersonName =
+          dashboard.selectedSalesPerson?.displayName ??
+              'Selected salesperson';
+
+      return '$salesPersonName has no new or reactivated '
+          'customer commission opportunity for this month.';
+    }
+
+    return 'Create a new customer or reactivate a customer '
+        'who has not purchased during the last 30 days. '
+        'Complete the required sales and earn additional commission.';
+  }
+
+  String get selectedCommissionSalesPersonName =>
+      _commissionDashboard?.selectedSalesPerson?.displayName ??
+          'Sales Person';
+
+
   // ───────────────────────────────────────── Territory ─────────────────────────────────────────
   String? selectedTerritory;
   List<String> territoryList = [];
@@ -80,10 +150,14 @@ class HomeViewModel extends BaseViewModel {
     try {
       final prefs = await _prefsInstance;
 
-      final results = await Future.wait([
+      final results = await Future.wait<dynamic>([
         _service.dashboard(selectedPeriod),
         _service.getEmpName(),
         _service.fetchRoles(),
+        _service.commissionDashboard(
+          month: selectedCommissionMonth,
+          showError: false,
+        ),
       ]);
 
       _commit(() {
@@ -91,6 +165,25 @@ class HomeViewModel extends BaseViewModel {
         employeeData = results[1] as EmpData?;
         availableDocTypes =
             (results[2] as List).map((e) => e.toString()).toList();
+
+        _commissionDashboard = results[3] as CommissionDashboard?;
+
+        selectedCommissionSalesPerson =
+            _commissionDashboard?.selectedSalesPerson?.name;
+
+        final backendMonth =
+        DateTime.tryParse(_commissionDashboard?.period?.monthValue ?? '');
+
+        if (backendMonth != null) {
+          selectedCommissionMonth = DateTime(
+            backendMonth.year,
+            backendMonth.month,
+            1,
+          );
+        }
+
+        commissionError = null;
+        commissionLoading = false;
 
         isCheckedIn = _dashboard?.lastLogType == "IN";
         territoryList = _dashboard?.territorylist ?? [];
@@ -259,26 +352,164 @@ class HomeViewModel extends BaseViewModel {
     });
   }
 
+  Future<void> changeCommissionMonth(DateTime month) async {
+    final normalizedMonth = DateTime(
+      month.year,
+      month.month,
+      1,
+    );
+
+    if (selectedCommissionMonth.year == normalizedMonth.year &&
+        selectedCommissionMonth.month == normalizedMonth.month) {
+      return;
+    }
+
+    selectedCommissionMonth = normalizedMonth;
+    notifyListeners();
+
+    await _loadCommissionDashboard(
+      salesPerson: selectedCommissionSalesPerson,
+    );
+  }
+
+  Future<void> changeCommissionSalesPerson(
+      String? salesPerson,
+      ) async {
+    final normalizedValue = salesPerson?.trim();
+
+    if (normalizedValue == null ||
+        normalizedValue.isEmpty ||
+        normalizedValue == selectedCommissionSalesPerson) {
+      return;
+    }
+
+    selectedCommissionSalesPerson = normalizedValue;
+    notifyListeners();
+
+    await _loadCommissionDashboard(
+      salesPerson: normalizedValue,
+    );
+  }
+
+  Future<void> retryCommissionDashboard() async {
+    await _loadCommissionDashboard(
+      salesPerson: selectedCommissionSalesPerson,
+    );
+  }
+
+  Future<void> _loadCommissionDashboard({
+    String? salesPerson,
+    bool showError = true,
+  }) async {
+    final requestId = ++_commissionRequestId;
+
+    commissionLoading = true;
+    commissionError = null;
+    notifyListeners();
+
+    try {
+      final result = await _service.commissionDashboard(
+        month: selectedCommissionMonth,
+        salesPerson: salesPerson,
+        showError: showError,
+      );
+
+      // Ignore an older request if a newer selection was made.
+      if (requestId != _commissionRequestId) {
+        return;
+      }
+
+      if (result == null) {
+        commissionError = 'Unable to load commission details';
+        return;
+      }
+
+      _commissionDashboard = result;
+
+      selectedCommissionSalesPerson =
+          result.selectedSalesPerson?.name;
+
+      final backendMonth =
+      DateTime.tryParse(result.period?.monthValue ?? '');
+
+      if (backendMonth != null) {
+        selectedCommissionMonth = DateTime(
+          backendMonth.year,
+          backendMonth.month,
+          1,
+        );
+      }
+
+      commissionError = null;
+    } catch (error, stackTrace) {
+      if (requestId != _commissionRequestId) {
+        return;
+      }
+
+      commissionError = 'Unable to load commission details';
+
+      _log.e(
+        'Commission dashboard failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+    } finally {
+      if (requestId == _commissionRequestId) {
+        commissionLoading = false;
+        notifyListeners();
+      }
+    }
+  }
+
   Future<void> onRefresh() async {
     try {
-      final dashboard = await _service.dashboard(
-        selectedPeriod,
-        range: selectedRange,
-      );
-      if (dashboard == null) return;
+      final results = await Future.wait<dynamic>([
+        _service.dashboard(
+          selectedPeriod,
+          range: selectedRange,
+        ),
+        _service.commissionDashboard(
+          month: selectedCommissionMonth,
+          salesPerson: selectedCommissionSalesPerson,
+          showError: false,
+        ),
+      ]);
 
-      _dashboard = dashboard;
-      territoryList = dashboard.territorylist ?? [];
+      final dashboardData = results[0] as DashBoard?;
+      final commissionData = results[1] as CommissionDashboard?;
 
-      salesList = dashboard.salesPerson ?? [];
-      weekData = _weeklyData(salesList);
+      if (dashboardData != null) {
+        _dashboard = dashboardData;
+        territoryList = dashboardData.territorylist ?? [];
 
-      isCheckedIn = dashboard.lastLogType == "IN";
+        salesList = dashboardData.salesPerson ?? [];
+        weekData = _weeklyData(salesList);
 
-      _cachedSpendHours = null;
+        isCheckedIn = dashboardData.lastLogType == "IN";
+        _cachedSpendHours = null;
+      }
+
+      // Preserve old commission data if only its refresh failed.
+      if (commissionData != null) {
+        _commissionDashboard = commissionData;
+
+        selectedCommissionSalesPerson =
+            commissionData.selectedSalesPerson?.name;
+
+        commissionError = null;
+      }
+
       notifyListeners();
-    } catch (_) {
-      Fluttertoast.showToast(msg: "Failed to refresh data");
+    } catch (error, stackTrace) {
+      _log.e(
+        'Dashboard refresh failed',
+        error: error,
+        stackTrace: stackTrace,
+      );
+
+      Fluttertoast.showToast(
+        msg: "Failed to refresh data",
+      );
     }
   }
 
