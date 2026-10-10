@@ -25,6 +25,7 @@ import '../../constants.dart';
 import '../../router.router.dart';
 import '../../widgets/drop_down.dart';
 import '../Marketing Material Issue/list_marketing/list_marketing_screen.dart';
+import '../analytics/analytics_home_screen.dart';
 import '../attendance_request/list_attendance_request/list_attendance_request_screen.dart';
 import '../attendence_screen/attendence_view.dart';
 import '../holiday_screen/holiday_view.dart';
@@ -401,13 +402,113 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ),
                     ),
+
                   ],
                 ),
               ],
             ),
           ),
 
-          SizedBox(height: 20),
+          const SizedBox(height: 12),
+
+          // Analytics navigation
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFF1769E0),
+                  Color(0xFF0C4FB8),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF1769E0).withOpacity(0.20),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AnalyticsHomeScreen(),
+                    ),
+                  );
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 42,
+                        height: 42,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: Color(0x26FFFFFF),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(11),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.insights_rounded,
+                            color: Colors.white,
+                            size: 23,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Analytics',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Sales, commission and performance insights',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Color(0xD9FFFFFF),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Colors.white,
+                        size: 15,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
